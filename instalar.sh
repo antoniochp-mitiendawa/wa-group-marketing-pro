@@ -83,4 +83,4 @@ echo -e "${CYAN}╚════════════════════�
 echo ""
 
 # Iniciar el bot directamente (sin preguntar, evita conflicto de readline)
-cd ~/MiTiendaWA && node bot.js
+cd ~/MiTiendaWA && node bot.js < /dev/tty
