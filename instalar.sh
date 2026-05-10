@@ -15,7 +15,7 @@ BLANCO='\033[1;37m'
 NC='\033[0m'
 
 # ⚙️  CONFIGURA AQUÍ TU REPO DE GITHUB
-REPO_URL="https://raw.githubusercontent.com/TU_USUARIO/TU_REPOSITORIO/main/bot.js"
+REPO_URL="https://raw.githubusercontent.com/antoniochp-mitiendawa/WA-Group-Marketing-Pro/main/bot.js"
 # Ejemplo: REPO_URL="https://raw.githubusercontent.com/mitiendawa/bot-grupos/main/bot.js"
 
 clear
