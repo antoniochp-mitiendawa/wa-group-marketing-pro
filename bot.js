@@ -40,6 +40,11 @@ function obtenerHoraActualNum() {
     return parseInt(ahora.getHours().toString().padStart(2, '0') + ahora.getMinutes().toString().padStart(2, '0'));
 }
 
+function obtenerMinutosActuales() {
+    const ahora = new Date();
+    return ahora.getHours() * 60 + ahora.getMinutes();
+}
+
 async function esperarInicio(hInicio) {
     const inicioTarget = parseInt(hInicio);
     console.log(`\n⏳ Modo Vigilancia: Esperando a las ${hInicio}.`);
@@ -132,6 +137,21 @@ async function iniciarCuestionario() {
     return { tipoCampaña, modoEnvio, carpetas, rutaGrupos, titulo, desc, precio, url, ráfagas };
 }
 
+// --- DETECTAR DESDE QUÉ RÁFAGA ARRANCAR ---
+function obtenerRafagaInicial(ráfagas) {
+    const minutosActuales = obtenerMinutosActuales();
+    for (let i = 0; i < ráfagas.length; i++) {
+        const hFinMins = parseInt(ráfagas[i].hFin.slice(0,2)) * 60 + parseInt(ráfagas[i].hFin.slice(2));
+        if (minutosActuales < hFinMins) {
+            if (i > 0) console.log(`\n⏩ Ráfagas anteriores ya pasadas. Arrancando desde ráfaga ${i+1}.`);
+            return i;
+        }
+    }
+    // Todas pasaron, esperar mañana
+    console.log(`\n🌙 Todas las ráfagas del día ya pasaron. Esperando mañana...`);
+    return -1;
+}
+
 // Flag para evitar que reconexión reinicie la campaña
 let campañaActiva = false;
 
@@ -181,7 +201,16 @@ async function ejecutar() {
             const conf = await iniciarCuestionario();
             
             while (true) {
-                for (let r = 0; r < conf.ráfagas.length; r++) {
+                // Detectar desde qué ráfaga arrancar según hora actual
+                let rafagaInicial = obtenerRafagaInicial(conf.ráfagas);
+
+                // Si todas pasaron, esperar mañana y reiniciar desde la 1
+                if (rafagaInicial === -1) {
+                    await esperarHastaMañana(conf.ráfagas[0].hIni);
+                    rafagaInicial = 0;
+                }
+
+                for (let r = rafagaInicial; r < conf.ráfagas.length; r++) {
                     const ventana = conf.ráfagas[r];
                     await esperarInicio(ventana.hIni);
                     
@@ -243,6 +272,8 @@ async function ejecutar() {
                     }
                     console.log(`\n✅ Ráfaga ${r+1} finalizada.`);
                 }
+
+                // Al terminar todas las ráfagas del día, esperar mañana
                 await esperarHastaMañana(conf.ráfagas[0].hIni);
             }
         }
