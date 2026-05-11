@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # ================================================
-#   MI TIENDA WA - Script de Instalación v2.1
+#   MI TIENDA WA - Script de Instalación v2.0
 # ================================================
 
 ROJO='\033[0;31m'
@@ -12,7 +12,6 @@ AMARILLO='\033[1;33m'
 BLANCO='\033[1;37m'
 NC='\033[0m'
 
-# URL del repositorio (Asegúrate de que apunte a tu versión actualizada)
 REPO_URL="https://raw.githubusercontent.com/antoniochp-mitiendawa/WA-Group-Marketing-Pro/main/bot.js"
 
 clear
@@ -67,16 +66,17 @@ if [ $? -ne 0 ]; then
 fi
 
 # ---------- PASO 6: Descargar bot ----------
-echo -e "${AZUL}[ 6/6 ] ⬇️  Descargando bot.js...${NC}"
-# Nota: Si aún no lo subes a GitHub, puedes crear el archivo manualmente
+echo -e "${AZUL}[ 6/6 ] ⬇️  Descargando bot.js desde GitHub...${NC}"
 curl -fsSL "$REPO_URL" -o bot.js
 
 if [ $? -ne 0 ] || [ ! -s bot.js ]; then
-    echo -e "${AMARILLO}⚠️ No se pudo descargar bot.js automáticamente.${NC}"
-    echo -e "${AMARILLO}   Asegúrate de colocar tu bot.js en ~/MiTiendaWA manualmente.${NC}"
+    echo -e "${ROJO}❌ No se pudo descargar bot.js.${NC}"
+    echo -e "${AMARILLO}   Verifica que el archivo exista en:${NC}"
+    echo -e "${AMARILLO}   $REPO_URL${NC}"
+    exit 1
 fi
 
-echo -e "${VERDE}✅ Entorno preparado correctamente.${NC}"
+echo -e "${VERDE}✅ bot.js descargado correctamente.${NC}"
 
 # ---------- LISTO ----------
 echo ""
@@ -93,4 +93,5 @@ echo -e "${VERDE}║                                           ║${NC}"
 echo -e "${CYAN}╚═══════════════════════════════════════════╝${NC}"
 echo ""
 
+# Lanzar con pm2 para que se relance solo si se cae
 cd ~/MiTiendaWA && pm2 start bot.js --name "MiTiendaWA" && pm2 save && pm2 logs MiTiendaWA < /dev/tty
