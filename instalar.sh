@@ -94,4 +94,4 @@ echo -e "${CYAN}╚════════════════════�
 echo ""
 
 # Lanzar con pm2 para que se relance solo si se cae
-cd ~/MiTiendaWA && pm2 start bot.js --name "MiTiendaWA" && pm2 save && node bot.js < /dev/tty
+cd ~/MiTiendaWA && pm2 start bot.js --name "MiTiendaWA" && pm2 save && pm2 logs MiTiendaWA < /dev/tty
