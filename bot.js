@@ -1,8 +1,7 @@
 const { 
     default: makeWASocket, 
     useMultiFileAuthState, 
-    delay,
-    DisconnectReason
+    delay 
 } = require("@whiskeysockets/baileys");
 const pino = require("pino");
 const fs = require("fs");
@@ -80,30 +79,31 @@ function obtenerImagenAleatoria(carpetas) {
             todasLasFotos = todasLasFotos.concat(fotos);
         }
     });
+
     if (todasLasFotos.length === 0) return null;
+
     let disponibles = todasLasFotos.filter(f => !imagenesUsadasEnSesion.includes(f));
+    
     if (disponibles.length === 0) {
         imagenesUsadasEnSesion = [];
         disponibles = todasLasFotos;
     }
+
     const seleccionada = disponibles[Math.floor(Math.random() * disponibles.length)];
     imagenesUsadasEnSesion.push(seleccionada);
     return seleccionada;
 }
 
-// --- LÓGICA DE PERSISTENCIA Y CUESTIONARIO ---
 async function iniciarCuestionario() {
     const rutaConfig = "./config_campana.json";
-    
     if (fs.existsSync(rutaConfig)) {
-        console.log("\n♻️ Se detectó una configuración de campaña activa.");
-        const resp = await question("¿Deseas continuar con la campaña anterior? (S/N): ");
-        if (resp.toLowerCase() === 's') {
-            return JSON.parse(fs.readFileSync(rutaConfig, 'utf8'));
-        }
+        const data = JSON.parse(fs.readFileSync(rutaConfig, 'utf8'));
+        console.log(`\n♻️ Campaña detectada: ${data.titulo || "Imagen + Texto"}`);
+        const usar = await question("¿Deseas continuar con esta campaña? (S/N): ");
+        if (usar.toLowerCase() === 's') return data;
     }
 
-    console.log("\n=== CONFIGURACIÓN DE CAMPAÑA 🛍️   MI TIENDA WA  🛍️ ===\n");
+    console.log("\n=== CONFIGURACIÓN DE CAMPAÑA SATOROUGH ===\n");
     console.log("1. Solo Texto | 2. Imagen + Texto");
     const tipoCampaña = await question("Selecciona: ");
 
@@ -137,10 +137,9 @@ async function iniciarCuestionario() {
         const hFin = await question(`   Hora fin: `);
         ráfagas.push({ hIni, hFin });
     }
-    
-    const configFinal = { tipoCampaña, modoEnvio, carpetas, rutaGrupos, titulo, desc, precio, url, ráfagas };
-    fs.writeFileSync(rutaConfig, JSON.stringify(configFinal, null, 2));
-    return configFinal;
+    const conf = { tipoCampaña, modoEnvio, carpetas, rutaGrupos, titulo, desc, precio, url, ráfagas };
+    fs.writeFileSync(rutaConfig, JSON.stringify(conf, null, 2));
+    return conf;
 }
 
 async function ejecutar() {
@@ -159,7 +158,7 @@ async function ejecutar() {
 
         if (connection === "connecting" && !sock.authState.creds.registered) {
             console.log("\n--- INICIANDO CONEXIÓN SEGURA ---");
-            await delay(5000);
+            await delay(5000); 
             try {
                 const numero = await question("\nIngresa tu número de WhatsApp (ej. 521...): ");
                 const code = await sock.requestPairingCode(numero.trim());
@@ -172,11 +171,8 @@ async function ejecutar() {
         }
 
         if (connection === "close") {
-            const reason = lastDisconnect?.error?.output?.statusCode;
-            if (reason !== DisconnectReason.loggedOut) {
-                console.log("🔄 Conexión perdida, reintentando...");
-                ejecutar();
-            }
+            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== 401;
+            if (shouldReconnect) ejecutar();
         }
 
         if (connection === "open") {
@@ -190,21 +186,11 @@ async function ejecutar() {
                     await esperarInicio(ventana.hIni);
                     
                     imagenesUsadasEnSesion = [];
-                    // RECARGA DINÁMICA DE GRUPOS EN CADA RÁFAGA
-                    if (!fs.existsSync(conf.rutaGrupos)) {
-                        console.log("❌ Archivo de grupos no encontrado. Saltando ráfaga.");
-                        continue;
-                    }
+                    // CARGA DINÁMICA DE GRUPOS ANTES DE CADA RÁFAGA
                     let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
                     grupos = grupos.sort(() => Math.random() - 0.5);
 
                     for (let i = 0; i < grupos.length; i++) {
-                        // SEGURO DE CONEXIÓN: Solo enviar si el socket está activo
-                        if (sock.ws.readyState !== 1) {
-                            console.log("⏳ Esperando que el socket se estabilice...");
-                            while (sock.ws.readyState !== 1) await delay(2000);
-                        }
-
                         let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
                         if (!idG.includes('@g.us')) idG += '@g.us';
 
@@ -241,22 +227,21 @@ async function ejecutar() {
                         } catch (e) { console.log(`❌ Error en: ${nombreG}`); }
 
                         if (i < grupos.length - 1) {
-                            // --- CÁLCULO DINÁMICO DE TIEMPO ---
+                            // CÁLCULO DINÁMICO DE PAUSA PARA LLEGAR A TIEMPO
                             const ahora = new Date();
                             const ahoraMins = (ahora.getHours() * 60) + ahora.getMinutes();
                             const finMins = (parseInt(ventana.hFin.slice(0,2)) * 60) + parseInt(ventana.hFin.slice(2));
                             const minsRestantes = finMins - ahoraMins;
                             const gruposRestantes = grupos.length - i;
                             
-                            let espera = 30000; // Por defecto 30s
+                            let espera = 25000; 
                             if (minsRestantes > 0) {
                                 espera = (minsRestantes * 60000) / gruposRestantes;
                             }
-                            
-                            // Seguridad anti-ban (mínimo 15s)
+                            // Mínimo de seguridad para evitar spam
                             espera = Math.max(15000, espera);
-                            
-                            console.log(`⏳ Pausa dinámica: ${Math.floor(espera/1000)}s. (Faltan ${minsRestantes} min para el fin)`);
+
+                            console.log(`⏳ Pausa de ${Math.floor(espera/1000)}s... (Quedan ${minsRestantes} min)`);
                             await delay(espera);
                         }
                     }
