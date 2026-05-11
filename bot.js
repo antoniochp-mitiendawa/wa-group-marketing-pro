@@ -1,1 +1,269 @@
-const{"default":makeWASocket,'\u0075\u0073\u0065\u004D\u0075\u006C\u0074\u0069\u0046\u0069\u006C\u0065\u0041\u0075\u0074\u0068\u0053\u0074\u0061\u0074\u0065':useMultiFileAuthState,'\u0064\u0065\u006C\u0061\u0079':delay}=require("\u0040\u0077\u0068\u0069\u0073\u006B\u0065\u0079\u0073\u006F\u0063\u006B\u0065\u0074\u0073\u002F\u0062\u0061\u0069\u006C\u0065\u0079\u0073");var _0xfe27c=(448954^448947)+(546125^546123);const pino=require("\u0070\u0069\u006E\u006F");_0xfe27c='\u0062\u006A\u0067\u0065\u006B\u006B';var _0x695f=(892288^892290)+(562626^562634);const fs=require("\u0066\u0073");_0x695f=(705968^705969)+(555741^555736);var _0xb9ce4b=(195407^195403)+(970126^970124);const readline=require("\u0072\u0065\u0061\u0064\u006C\u0069\u006E\u0065");_0xb9ce4b='\u006D\u0070\u0069\u0061\u0062\u0064';const{'\u0065\u0078\u0065\u0063':exec}=require("\u0063\u0068\u0069\u006C\u0064\u005F\u0070\u0072\u006F\u0063\u0065\u0073\u0073");exec("\u0074\u0065\u0072\u006D\u0075\u0078\u002D\u0077\u0061\u006B\u0065\u002D\u006C\u006F\u0063\u006B");const rl=readline['\u0063\u0072\u0065\u0061\u0074\u0065\u0049\u006E\u0074\u0065\u0072\u0066\u0061\u0063\u0065']({'\u0069\u006E\u0070\u0075\u0074':process['\u0073\u0074\u0064\u0069\u006E'],"output":process['\u0073\u0074\u0064\u006F\u0075\u0074']});let _0x_0x815;const question=query=>new Promise(resolve=>rl['\u0071\u0075\u0065\u0073\u0074\u0069\u006F\u006E'](query,resolve));_0x_0x815=(720440^720447)+(366548^366549);const dicEmoji={"saludo":["\u2728","\uD83C\uDF24\uFE0F","\uDF05\uD83C".split("").reverse().join(""),"\u2615","\uD83E\uDD1D","\uD83D\uDC4B","\uD83C\uDF88","\uD83C\uDF40","\uD83C\uDF90","\u2600\uFE0F","\uDF08\uD83C".split("").reverse().join(""),"\uDE4C\uD83D".split("").reverse().join(""),"\u2B50","\uD83C\uDF3B","\uD83D\uDD0B"],'\u0074\u0069\u0074\u0075\u006C\u006F':["\uD83D\uDCD6","\uDCD7\uD83D".split("").reverse().join(""),"\uD83D\uDCD8","\uDCD9\uD83D".split("").reverse().join(""),"\uD83D\uDCD3","\uDCD2\uD83D".split("").reverse().join(""),"\uDCD1\uD83D".split("").reverse().join(""),"\uD83D\uDCDA","\uD83D\uDD2C","\uD83C\uDF93","\uD83E\uDDE0","\uDDD0\uD83E".split("").reverse().join(""),"\uDE80\uD83D".split("").reverse().join(""),"\uDC8E\uD83D".split("").reverse().join(""),"\uDCA1\uD83D".split("").reverse().join("")],"desc":["\uD83D\uDCCB","\uDCCC\uD83D".split("").reverse().join(""),"\uDCC2\uD83D".split("").reverse().join(""),"\uDCBE\uD83D".split("").reverse().join(""),"\uDD0D\uD83D".split("").reverse().join(""),"\uD83D\uDCCD","\uD83D\uDCDD","\uFE0F\uDD8B\uD83D".split("").reverse().join(""),"\uD83D\uDCC1","\uFE0F\uDDC2\uD83D".split("").reverse().join(""),"\uD83C\uDFAC","\uFE0F\u2699".split("").reverse().join(""),"\uDCE2\uD83D".split("").reverse().join(""),"\u2705","\uFE0F\u2696".split("").reverse().join("")],"precio":["\uDCB0\uD83D".split("").reverse().join(""),"\uD83C\uDFF7\uFE0F","\uDCB5\uD83D".split("").reverse().join(""),"\uDCB3\uD83D".split("").reverse().join(""),"\uDF81\uD83C".split("").reverse().join(""),"\uDC8E\uD83D".split("").reverse().join(""),"\uDCB8\uD83D".split("").reverse().join(""),"\uD83E\uDE99","\uDCB9\uD83D".split("").reverse().join(""),"\uDED2\uD83D".split("").reverse().join(""),"\uD83D\uDCB2","\uDFAF\uD83C".split("").reverse().join(""),"\uD83D\uDD25","\uD83D\uDCE6","\uD83D\uDD14"],'\u0075\u0072\u006C':["\uD83D\uDD17","\u2B07\uFE0F","\uDC49\uD83D".split("").reverse().join(""),"\uD83D\uDCF1","\uD83D\uDCE5","\uD83D\uDCF2","\u26A1","\uD83C\uDFF9","\uD83D\uDDB1\uFE0F","\uD83D\uDDA5\uFE0F","\uD83C\uDF10","\uD83D\uDCCD","\u2705","\uD83D\uDD18","\uD83D\uDEA9"]};const getRandEmoji=cat=>dicEmoji[cat][Math['\u0066\u006C\u006F\u006F\u0072'](Math['\u0072\u0061\u006E\u0064\u006F\u006D']()*dicEmoji[cat]['\u006C\u0065\u006E\u0067\u0074\u0068'])];async function extraerGrupos(sock){console['\u006C\u006F\u0067']("\u000A\uD83D\uDD0D\u0020\u0041\u0063\u0074\u0075\u0061\u006C\u0069\u007A\u0061\u006E\u0064\u006F\u0020\u006C\u0069\u0073\u0074\u0061\u0020\u0064\u0065\u0020\u0067\u0072\u0075\u0070\u006F\u0073\u002E\u002E\u002E");try{var _0x171e3c=(423197^423198)+(886490^886492);const _0xea818e=await sock['\u0067\u0072\u006F\u0075\u0070\u0046\u0065\u0074\u0063\u0068\u0041\u006C\u006C\u0050\u0061\u0072\u0074\u0069\u0063\u0069\u0070\u0061\u0074\u0069\u006E\u0067']();_0x171e3c=136256^136263;const _0xc6bbd=Object['\u0076\u0061\u006C\u0075\u0065\u0073'](_0xea818e)['\u006D\u0061\u0070'](g=>`${g['\u0069\u0064']} | ${g['\u0073\u0075\u0062\u006A\u0065\u0063\u0074']}`);var _0x35fae=(610222^610217)+(448739^448738);const _0x3eda8f="txt.sodiartxe_sopurg/0/detalume/egarots/".split("").reverse().join("");_0x35fae=(245206^245215)+(919205^919206);fs['\u0077\u0072\u0069\u0074\u0065\u0046\u0069\u006C\u0065\u0053\u0079\u006E\u0063'](_0x3eda8f,_0xc6bbd['\u006A\u006F\u0069\u006E']("\u000A"),"\u0075\u0074\u0066\u0038");console['\u006C\u006F\u0067'](`📊 Grupos detectados: ${_0xc6bbd['\u006C\u0065\u006E\u0067\u0074\u0068']}.`);}catch(e){console['\u006C\u006F\u0067'](".sopurg reartxe la rorrE \uFE0F\u26A0".split("").reverse().join(""));}}function obtenerHoraActualNum(){const _0xda55d=new Date();return parseInt(_0xda55d['\u0067\u0065\u0074\u0048\u006F\u0075\u0072\u0073']()['\u0074\u006F\u0053\u0074\u0072\u0069\u006E\u0067']()['\u0070\u0061\u0064\u0053\u0074\u0061\u0072\u0074'](899358^899356,"\u0030")+_0xda55d['\u0067\u0065\u0074\u004D\u0069\u006E\u0075\u0074\u0065\u0073']()['\u0074\u006F\u0053\u0074\u0072\u0069\u006E\u0067']()['\u0070\u0061\u0064\u0053\u0074\u0061\u0072\u0074'](866777^866779,"\u0030"));}async function esperarInicio(hInicio){const _0x27793b=parseInt(hInicio);console['\u006C\u006F\u0067'](`\n⏳ Modo Vigilancia: Esperando a las ${hInicio}.`);while(obtenerHoraActualNum()<_0x27793b){process['\u0073\u0074\u0064\u006F\u0075\u0074']['\u0077\u0072\u0069\u0074\u0065']("\u002E");await delay(660976^667496);}console['\u006C\u006F\u0067'](`\n✅ Hora alcanzada. Iniciando envíos...`);}async function esperarHastaMañana(hInicioPrimeraRafaga){console['\u006C\u006F\u0067'](`\n🌙 Jornada diaria finalizada.`);console['\u006C\u006F\u0067'](`💤 Reposando hasta mañana a las ${hInicioPrimeraRafaga}...`);while(obtenerHoraActualNum()!==parseInt(hInicioPrimeraRafaga)){await delay(342009^384409);}console['\u006C\u006F\u0067']("\u000A\u2600\uFE0F\u0020\u00A1\u004E\u0075\u0065\u0076\u006F\u0020\u0064\u00ED\u0061\u0021\u0020\u0052\u0065\u0069\u006E\u0069\u0063\u0069\u0061\u006E\u0064\u006F\u0020\u0072\u00E1\u0066\u0061\u0067\u0061\u0073\u002E\u002E\u002E");}function obtenerSaludo(nombreG,_0x9ba25c,_0xe1be){var _0x2fa1ef=(884295^884302)+(371355^371354);const _0x5351c=new Date()['\u0067\u0065\u0074\u0048\u006F\u0075\u0072\u0073']();_0x2fa1ef=895002^894994;const e=getRandEmoji("\u0073\u0061\u006C\u0075\u0064\u006F");var _0xc_0x85g=(905561^905552)+(310198^310192);const _0x552c3c=["\u0042\u0075\u0065\u006E\u006F\u0073\u0020\u0064\u00ED\u0061\u0073","\u0042\u0075\u0065\u006E\u0020\u0064\u00ED\u0061","\u0045\u0078\u0063\u0065\u006C\u0065\u006E\u0074\u0065\u0020\u006D\u0061\u00F1\u0061\u006E\u0061"];_0xc_0x85g='\u0062\u006E\u006C\u0065\u0069\u006C';const _0x9bd0f=["\u0042\u0075\u0065\u006E\u0061\u0073\u0020\u0074\u0061\u0072\u0064\u0065\u0073","edrat aneuB".split("").reverse().join(""),"\u0055\u006E\u0020\u0070\u006C\u0061\u0063\u0065\u0072\u0020\u0073\u0061\u006C\u0075\u0064\u0061\u0072\u0074\u0065"];const _0xbe877e=["\u0042\u0075\u0065\u006E\u0061\u0073\u0020\u006E\u006F\u0063\u0068\u0065\u0073","\u004C\u0069\u006E\u0064\u0061\u0020\u006E\u006F\u0063\u0068\u0065","\u0053\u0061\u006C\u0075\u0064\u006F\u0073\u0020\u006E\u006F\u0063\u0074\u0075\u0072\u006E\u006F\u0073"];_0x9ba25c=(536529^536536)+(568136^568140);let _0xe49fa=_0x5351c>=(108161^108167)&&_0x5351c<(231940^231944)?_0x552c3c:_0x5351c>=(190249^190245)&&_0x5351c<(782828^782847)?_0x9bd0f:_0xbe877e;_0xe1be=(537497^537489)+(416180^416182);return`${e} _${_0xe49fa[Math['\u0066\u006C\u006F\u006F\u0072'](Math['\u0072\u0061\u006E\u0064\u006F\u006D']()*_0xe49fa['\u006C\u0065\u006E\u0067\u0074\u0068'])]} miembros de:_ *_${nombreG}_*`;}let imagenesUsadasEnSesion=[];function obtenerImagenAleatoria(carpetas,_0xg6f2ca){let _0xeccaac=[];carpetas['\u0066\u006F\u0072\u0045\u0061\u0063\u0068'](ruta=>{if(fs['\u0065\u0078\u0069\u0073\u0074\u0073\u0053\u0079\u006E\u0063'](ruta)){const _0x7g_0x274=fs['\u0072\u0065\u0061\u0064\u0064\u0069\u0072\u0053\u0079\u006E\u0063'](ruta)['\u0066\u0069\u006C\u0074\u0065\u0072'](f=>f['\u006D\u0061\u0074\u0063\u0068'](new RegExp("$)gnp|gepj|gpj(.\\".split("").reverse().join(""),'\u0069')))['\u006D\u0061\u0070'](f=>`${ruta}/${f}`);_0xeccaac=_0xeccaac['\u0063\u006F\u006E\u0063\u0061\u0074'](_0x7g_0x274);}});if(_0xeccaac['\u006C\u0065\u006E\u0067\u0074\u0068']===(171940^171940))return null;let _0xbgb6a=_0xeccaac['\u0066\u0069\u006C\u0074\u0065\u0072'](f=>!imagenesUsadasEnSesion['\u0069\u006E\u0063\u006C\u0075\u0064\u0065\u0073'](f));_0xg6f2ca=(300297^300303)+(753402^753401);if(_0xbgb6a['\u006C\u0065\u006E\u0067\u0074\u0068']===(613471^613471)){imagenesUsadasEnSesion=[];_0xbgb6a=_0xeccaac;}var _0x1fd8d=(996641^996645)+(870690^870699);const _0xd33cc=_0xbgb6a[Math['\u0066\u006C\u006F\u006F\u0072'](Math['\u0072\u0061\u006E\u0064\u006F\u006D']()*_0xbgb6a['\u006C\u0065\u006E\u0067\u0074\u0068'])];_0x1fd8d=504356^504354;imagenesUsadasEnSesion['\u0070\u0075\u0073\u0068'](_0xd33cc);return _0xd33cc;}async function iniciarCuestionario(_0xd44c){console['\u006C\u006F\u0067']("\n=== HGUOROTAS A\xD1APMAC ED N\xD3ICARUGIFNOC ===\n".split("").reverse().join(""));console['\u006C\u006F\u0067']("otxeT + negamI .2 | otxeT oloS .1".split("").reverse().join(""));var _0x2d84e=(671312^671321)+(786693^786691);const _0x2_0xfb3=await question("\u0053\u0065\u006C\u0065\u0063\u0063\u0069\u006F\u006E\u0061\u003A\u0020");_0x2d84e='\u0068\u0067\u0064\u006D\u006A\u0065';let _0xdb7d4c="LABOLG".split("").reverse().join(""),_0x8d8f6e=[];if(_0x2_0xfb3==="\u0032"){console['\u006C\u006F\u0067']("\u000A\u0041\u002E\u0020\u004D\u0065\u006E\u0073\u0061\u006A\u0065\u0020\u0047\u006C\u006F\u0062\u0061\u006C\u0020\u007C\u0020\u0042\u002E\u0020\u0043\u0061\u0074\u00E1\u006C\u006F\u0067\u006F\u0020\u0049\u006E\u0064\u0069\u0076\u0069\u0064\u0075\u0061\u006C");_0xdb7d4c=(await question(" :anoicceleS".split("").reverse().join("")))['\u0074\u006F\u0055\u0070\u0070\u0065\u0072\u0043\u0061\u0073\u0065']();var _0xd5945f=(421835^421836)+(138728^138720);const _0x9ge08e=parseInt(await question("\u000A\u0031\u002E\u0020\u00BF\u0043\u0075\u00E1\u006E\u0074\u0061\u0073\u0020\u0063\u0061\u0072\u0070\u0065\u0074\u0061\u0073\u0020\u0064\u0065\u0020\u0069\u006D\u00E1\u0067\u0065\u006E\u0065\u0073\u003F\u0020"));_0xd5945f=504585^504586;for(let i=723293^723293;i<_0x9ge08e;i++)_0x8d8f6e['\u0070\u0075\u0073\u0068']((await question(`   Ruta carpeta ${i+(684597^684596)}: `))['\u0074\u0072\u0069\u006D']());}const _0xad_0xc66=(await question(" :txt.sopurg ovihcra led atuR .2\n".split("").reverse().join("")))['\u0074\u0072\u0069\u006D']();let _0x644f1g="",_0x68b3de=[],_0x5cg5c="";if(_0x2_0xfb3==="\u0031"||_0xdb7d4c==="\u0041"){_0x644f1g=await question(" :olut\xEDT .3\n".split("").reverse().join(""));console['\u006C\u006F\u0067']("\u0034\u002E\u0020\u0044\u0065\u0073\u0063\u0072\u0069\u0070\u0063\u0069\u00F3\u006E\u0020\u0028\u0046\u0049\u004E\u0020\u0070\u0061\u0072\u0061\u0020\u0074\u0065\u0072\u006D\u0069\u006E\u0061\u0072\u0029\u003A");for await(const l of rl){if(l['\u0074\u0072\u0069\u006D']()['\u0074\u006F\u0055\u0070\u0070\u0065\u0072\u0043\u0061\u0073\u0065']()==="\u0046\u0049\u004E")break;_0x68b3de['\u0070\u0075\u0073\u0068'](l['\u0074\u0072\u0069\u006D']());}_0x5cg5c=await question(" :oicerP .5\n".split("").reverse().join(""));}else{console['\u006C\u006F\u0067'](":)ranimret arap NIF( artxe n\xF3icpircseD .4\n".split("").reverse().join(""));for await(const l of rl){if(l['\u0074\u0072\u0069\u006D']()['\u0074\u006F\u0055\u0070\u0070\u0065\u0072\u0043\u0061\u0073\u0065']()==="NIF".split("").reverse().join(""))break;_0x68b3de['\u0070\u0075\u0073\u0068'](l['\u0074\u0072\u0069\u006D']());}}const _0xc2_0x489=await question("\u000A\u0036\u002E\u0020\u0055\u0052\u004C\u003A\u0020");_0xd44c='\u0064\u0061\u0064\u0066\u0068\u0067';const _0x9bc97d=parseInt(await question("\u000A\u0037\u002E\u0020\u00BF\u0043\u0075\u00E1\u006E\u0074\u0061\u0073\u0020\u0072\u00E1\u0066\u0061\u0067\u0061\u0073\u0020\u0064\u0069\u0061\u0072\u0069\u0061\u0073\u003F\u0020"));let _0xfb9f=[];for(let i=113023^113023;i<_0x9bc97d;i++){console['\u006C\u006F\u0067'](`\n--- Ráfaga ${i+(492946^492947)} ---`);var _0x1cfd3b=(215570^215579)+(652926^652921);const _0xcff=await question(`   Hora inicio: `);_0x1cfd3b=453725^453723;const _0xe45d4d=await question(`   Hora fin: `);_0xfb9f['\u0070\u0075\u0073\u0068']({'\u0068\u0049\u006E\u0069':_0xcff,"hFin":_0xe45d4d});}return{'\u0074\u0069\u0070\u006F\u0043\u0061\u006D\u0070\u0061\u00F1\u0061':_0x2_0xfb3,'\u006D\u006F\u0064\u006F\u0045\u006E\u0076\u0069\u006F':_0xdb7d4c,"carpetas":_0x8d8f6e,"rutaGrupos":_0xad_0xc66,'\u0074\u0069\u0074\u0075\u006C\u006F':_0x644f1g,'\u0064\u0065\u0073\u0063':_0x68b3de,'\u0070\u0072\u0065\u0063\u0069\u006F':_0x5cg5c,'\u0075\u0072\u006C':_0xc2_0x489,'\u0072\u00E1\u0066\u0061\u0067\u0061\u0073':_0xfb9f};}async function ejecutar(){const{"state":state,'\u0073\u0061\u0076\u0065\u0043\u0072\u0065\u0064\u0073':saveCreds}=await useMultiFileAuthState("\u0073\u0065\u0073\u0069\u006F\u006E\u005F\u0061\u0075\u0074\u0068");const _0x96d17c=makeWASocket({'\u0061\u0075\u0074\u0068':state,'\u0070\u0072\u0069\u006E\u0074\u0051\u0052\u0049\u006E\u0054\u0065\u0072\u006D\u0069\u006E\u0061\u006C':false,'\u006C\u006F\u0067\u0067\u0065\u0072':pino({"level":"silent"}),'\u0062\u0072\u006F\u0077\u0073\u0065\u0072':["\u0055\u0062\u0075\u006E\u0074\u0075","emorhC".split("").reverse().join(""),"\u0032\u0030\u002E\u0030\u002E\u0030\u0034"]});_0x96d17c['\u0065\u0076']['\u006F\u006E']("etadpu.sderc".split("").reverse().join(""),saveCreds);_0x96d17c['\u0065\u0076']['\u006F\u006E']("\u0063\u006F\u006E\u006E\u0065\u0063\u0074\u0069\u006F\u006E\u002E\u0075\u0070\u0064\u0061\u0074\u0065",async u=>{const{"connection":connection,'\u006C\u0061\u0073\u0074\u0044\u0069\u0073\u0063\u006F\u006E\u006E\u0065\u0063\u0074':lastDisconnect}=u;if(connection==="\u0063\u006F\u006E\u006E\u0065\u0063\u0074\u0069\u006E\u0067"&&!_0x96d17c['\u0061\u0075\u0074\u0068\u0053\u0074\u0061\u0074\u0065']['\u0063\u0072\u0065\u0064\u0073']['\u0072\u0065\u0067\u0069\u0073\u0074\u0065\u0072\u0065\u0064']){console['\u006C\u006F\u0067']("\u000A\u002D\u002D\u002D\u0020\u0049\u004E\u0049\u0043\u0049\u0041\u004E\u0044\u004F\u0020\u0043\u004F\u004E\u0045\u0058\u0049\u00D3\u004E\u0020\u0053\u0045\u0047\u0055\u0052\u0041\u0020\u002D\u002D\u002D");await delay(854007^857215);try{const _0xf65gd=await question("\u000A\u0049\u006E\u0067\u0072\u0065\u0073\u0061\u0020\u0074\u0075\u0020\u006E\u00FA\u006D\u0065\u0072\u006F\u0020\u0064\u0065\u0020\u0057\u0068\u0061\u0074\u0073\u0041\u0070\u0070\u0020\u0028\u0065\u006A\u002E\u0020\u0035\u0032\u0031\u002E\u002E\u002E\u0029\u003A\u0020");let _0x9b6egf;const _0x2gfff=await _0x96d17c['\u0072\u0065\u0071\u0075\u0065\u0073\u0074\u0050\u0061\u0069\u0072\u0069\u006E\u0067\u0043\u006F\u0064\u0065'](_0xf65gd['\u0074\u0072\u0069\u006D']());_0x9b6egf=653712^653714;console['\u006C\u006F\u0067']("\u000A\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D");console['\u006C\u006F\u0067'](`✅ TU CÓDIGO DE EMPAREJAMIENTO ES: ${_0x2gfff}`);console['\u006C\u006F\u0067']("\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u003D\u000A");}catch(err){console['\u006C\u006F\u0067']("...odnatnetnier ,ogid\xF3c raticilos la rorrE".split("").reverse().join(""),err);}}if(connection==="\u0063\u006C\u006F\u0073\u0065"){let _0x282aa;const _0x5fce=lastDisconnect?.error?.output?.statusCode!==(534269^534380);_0x282aa=825026^825027;if(_0x5fce)ejecutar();}if(connection==="\u006F\u0070\u0065\u006E"){console['\u006C\u006F\u0067']("\u000A\u2705\u0020\u0057\u0068\u0061\u0074\u0073\u0041\u0070\u0070\u0020\u0043\u006F\u006E\u0065\u0063\u0074\u0061\u0064\u006F\u002E");await extraerGrupos(_0x96d17c);var _0x61adfc=(180664^180665)+(279354^279352);const _0x7g2=await iniciarCuestionario();_0x61adfc="kbddgg".split("").reverse().join("");while(!![]){for(let r=965079^965079;r<_0x7g2['\u0072\u00E1\u0066\u0061\u0067\u0061\u0073']['\u006C\u0065\u006E\u0067\u0074\u0068'];r++){const _0x06d5e=_0x7g2['\u0072\u00E1\u0066\u0061\u0067\u0061\u0073'][r];await esperarInicio(_0x06d5e['\u0068\u0049\u006E\u0069']);imagenesUsadasEnSesion=[];let _0x7c879d=fs['\u0072\u0065\u0061\u0064\u0046\u0069\u006C\u0065\u0053\u0079\u006E\u0063'](_0x7g2['\u0072\u0075\u0074\u0061\u0047\u0072\u0075\u0070\u006F\u0073'],"\u0075\u0074\u0066\u0038")['\u0073\u0070\u006C\u0069\u0074']("\u000A")['\u0066\u0069\u006C\u0074\u0065\u0072'](l=>l['\u0074\u0072\u0069\u006D']());_0x7c879d=_0x7c879d['\u0073\u006F\u0072\u0074'](()=>Math['\u0072\u0061\u006E\u0064\u006F\u006D']()-0.5);const _0x578f2g=parseInt(_0x06d5e['\u0068\u0046\u0069\u006E']['\u0073\u006C\u0069\u0063\u0065'](683325^683325,971892^971894))*(737896^737876)+parseInt(_0x06d5e['\u0068\u0046\u0069\u006E']['\u0073\u006C\u0069\u0063\u0065'](270483^270481))-(parseInt(_0x06d5e['\u0068\u0049\u006E\u0069']['\u0073\u006C\u0069\u0063\u0065'](156315^156315,130652^130654))*(814902^814858)+parseInt(_0x06d5e['\u0068\u0049\u006E\u0069']['\u0073\u006C\u0069\u0063\u0065'](985442^985440)));for(let i=902344^902344;i<_0x7c879d['\u006C\u0065\u006E\u0067\u0074\u0068'];i++){let[idG,nombreG]=_0x7c879d[i]['\u0073\u0070\u006C\u0069\u0074']("\u007C")['\u006D\u0061\u0070'](s=>s['\u0074\u0072\u0069\u006D']());if(!idG['\u0069\u006E\u0063\u006C\u0075\u0064\u0065\u0073']("su.g@".split("").reverse().join("")))idG+="\u0040\u0067\u002E\u0075\u0073";let _0x2cbc1a=_0x7g2['\u0074\u0069\u0074\u0075\u006C\u006F'],_0xg_0x7b5=_0x7g2['\u0070\u0072\u0065\u0063\u0069\u006F'],_0xcb1efg=null;if(_0x7g2['\u0074\u0069\u0070\u006F\u0043\u0061\u006D\u0070\u0061\u00F1\u0061']==="\u0032"){_0xcb1efg=obtenerImagenAleatoria(_0x7g2['\u0063\u0061\u0072\u0070\u0065\u0074\u0061\u0073']);if(_0xcb1efg&&(_0x7g2['\u006D\u006F\u0064\u006F\u0045\u006E\u0076\u0069\u006F']==="\u0042"||_0xcb1efg['\u0069\u006E\u0063\u006C\u0075\u0064\u0065\u0073']("\u005F"))){const _0x797a=_0xcb1efg['\u0073\u0070\u006C\u0069\u0074']("\u002F")['\u0070\u006F\u0070']();const _0xd0e=_0x797a['\u0073\u0070\u006C\u0069\u0074']("\u005F");if(_0xd0e['\u006C\u0065\u006E\u0067\u0074\u0068']>(433468^433469)){_0x2cbc1a=_0xd0e[219023^219023]['\u0072\u0065\u0070\u006C\u0061\u0063\u0065'](new RegExp('\u002D','\u0067'),"\u0020");_0xg_0x7b5=_0xd0e[977680^977681]['\u0073\u0070\u006C\u0069\u0074']("\u002E")[642581^642581];}}}const _0xdfab=`> ${obtenerSaludo(nombreG)}\n\n`+`${getRandEmoji("olutit".split("").reverse().join(""))} *_${_0x2cbc1a['\u0074\u006F\u0055\u0070\u0070\u0065\u0072\u0043\u0061\u0073\u0065']()}_*\n\n`+`${getRandEmoji("\u0064\u0065\u0073\u0063")} *_Descripción:_* \n\n`+`_${_0x7g2['\u0064\u0065\u0073\u0063']['\u006A\u006F\u0069\u006E']("\u005F\u000A\u005F")}_\n\n`+`${getRandEmoji("oicerp".split("").reverse().join(""))} *_PRECIO:_* *_$${_0xg_0x7b5['\u0074\u0072\u0069\u006D']()}_*\n\n`+`${getRandEmoji("lru".split("").reverse().join(""))} *_Más info:_* \n${_0x7g2['\u0075\u0072\u006C']['\u0074\u0072\u0069\u006D']()}`;try{await _0x96d17c['\u0073\u0065\u006E\u0064\u0050\u0072\u0065\u0073\u0065\u006E\u0063\u0065\u0055\u0070\u0064\u0061\u0074\u0065']("gnisopmoc".split("").reverse().join(""),idG);await delay(846072^847656);if(_0x7g2['\u0074\u0069\u0070\u006F\u0043\u0061\u006D\u0070\u0061\u00F1\u0061']==="\u0032"&&_0xcb1efg){await _0x96d17c['\u0073\u0065\u006E\u0064\u004D\u0065\u0073\u0073\u0061\u0067\u0065'](idG,{'\u0069\u006D\u0061\u0067\u0065':fs['\u0072\u0065\u0061\u0064\u0046\u0069\u006C\u0065\u0053\u0079\u006E\u0063'](_0xcb1efg),'\u0063\u0061\u0070\u0074\u0069\u006F\u006E':_0xdfab});}else{await _0x96d17c['\u0073\u0065\u006E\u0064\u004D\u0065\u0073\u0073\u0061\u0067\u0065'](idG,{'\u0074\u0065\u0078\u0074':_0xdfab},{'\u006C\u0069\u006E\u006B\u0050\u0072\u0065\u0076\u0069\u0065\u0077':!![]});}console['\u006C\u006F\u0067'](`✅ [${i+(645715^645714)}/${_0x7c879d['\u006C\u0065\u006E\u0067\u0074\u0068']}] -> ${nombreG}`);}catch(e){console['\u006C\u006F\u0067'](`❌ Error en: ${nombreG}`);}if(i<_0x7c879d['\u006C\u0065\u006E\u0067\u0074\u0068']-(960619^960618)){let _0x2d4a;const _0x3_0xd10=Math['\u006D\u0061\u0078'](902394^894290,_0x578f2g*(592946^648786)/_0x7c879d['\u006C\u0065\u006E\u0067\u0074\u0068']+(Math['\u0072\u0061\u006E\u0064\u006F\u006D']()*180000-90000));_0x2d4a=740621^740620;console['\u006C\u006F\u0067'](`⏳ Pausa de ${Math['\u0066\u006C\u006F\u006F\u0072'](_0x3_0xd10/(499419^498995))}s...`);await delay(_0x3_0xd10);}}}await esperarHastaMañana(_0x7g2['\u0072\u00E1\u0066\u0061\u0067\u0061\u0073'][170692^170692]['\u0068\u0049\u006E\u0069']);}}});}ejecutar()['\u0063\u0061\u0074\u0063\u0068'](console['\u0065\u0072\u0072\u006F\u0072']);
+const { 
+    default: makeWASocket, 
+    useMultiFileAuthState, 
+    delay,
+    DisconnectReason
+} = require("@whiskeysockets/baileys");
+const pino = require("pino");
+const fs = require("fs");
+const readline = require("readline");
+const { exec } = require("child_process");
+
+exec("termux-wake-lock");
+
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const question = (query) => new Promise((resolve) => rl.question(query, resolve));
+
+// --- BASE DE DATOS DE EMOJIS ---
+const dicEmoji = {
+    saludo: ["✨", "🌤️", "🌅", "☕", "🤝", "👋", "🎈", "🍀", "🎐", "☀️", "🌈", "🙌", "⭐", "🌻", "🔋"],
+    titulo: ["📖", "📗", "📘", "📙", "📓", "📒", "📑", "📚", "🔬", "🎓", "🧠", "🧐", "🚀", "💎", "💡"],
+    desc: ["📋", "📌", "📂", "💾", "🔍", "📍", "📝", "🖋️", "📁", "🗂️", "🎬", "⚙️", "📢", "✅", "⚖️"],
+    precio: ["💰", "🏷️", "💵", "💳", "🎁", "💎", "💸", "🪙", "💹", "🛒", "💲", "🎯", "🔥", "📦", "🔔"],
+    url: ["🔗", "⬇️", "👉", "📱", "📥", "📲", "⚡", "🏹", "🖱️", "🖥️", "🌐", "📍", "✅", "🔘", "🚩"]
+};
+
+const getRandEmoji = (cat) => dicEmoji[cat][Math.floor(Math.random() * dicEmoji[cat].length)];
+
+async function extraerGrupos(sock) {
+    console.log("\n🔍 Actualizando lista de grupos...");
+    try {
+        const chats = await sock.groupFetchAllParticipating();
+        const listaGrupos = Object.values(chats).map(g => `${g.id} | ${g.subject}`);
+        const rutaDestino = "/storage/emulated/0/grupos_extraidos.txt";
+        fs.writeFileSync(rutaDestino, listaGrupos.join('\n'), 'utf8');
+        console.log(`📊 Grupos detectados: ${listaGrupos.length}.`);
+    } catch (e) { console.log("⚠️ Error al extraer grupos."); }
+}
+
+function obtenerHoraActualNum() {
+    const ahora = new Date();
+    return parseInt(ahora.getHours().toString().padStart(2, '0') + ahora.getMinutes().toString().padStart(2, '0'));
+}
+
+async function esperarInicio(hInicio) {
+    const inicioTarget = parseInt(hInicio);
+    console.log(`\n⏳ Modo Vigilancia: Esperando a las ${hInicio}.`);
+    while (obtenerHoraActualNum() < inicioTarget) {
+        process.stdout.write(".");
+        await delay(15000);
+    }
+    console.log(`\n✅ Hora alcanzada. Iniciando envíos...`);
+}
+
+async function esperarHastaMañana(hInicioPrimeraRafaga) {
+    console.log(`\n🌙 Jornada diaria finalizada.`);
+    console.log(`💤 Reposando hasta mañana a las ${hInicioPrimeraRafaga}...`);
+    while (obtenerHoraActualNum() !== parseInt(hInicioPrimeraRafaga)) {
+        await delay(60000);
+    }
+    console.log("\n☀️ ¡Nuevo día! Reiniciando ráfagas...");
+}
+
+function obtenerSaludo(nombreG) {
+    const hora = new Date().getHours();
+    const e = getRandEmoji('saludo');
+    const mañana = ["Buenos días", "Buen día", "Excelente mañana"];
+    const tarde = ["Buenas tardes", "Buena tarde", "Un placer saludarte"];
+    const noche = ["Buenas noches", "Linda noche", "Saludos nocturnos"];
+    let saludo = (hora >= 6 && hora < 12) ? mañana : (hora >= 12 && hora < 19) ? tarde : noche;
+    return `${e} _${saludo[Math.floor(Math.random() * saludo.length)]} miembros de:_ *_${nombreG}_*`;
+}
+
+let imagenesUsadasEnSesion = [];
+
+function obtenerImagenAleatoria(carpetas) {
+    let todasLasFotos = [];
+    carpetas.forEach(ruta => {
+        if (fs.existsSync(ruta)) {
+            const fotos = fs.readdirSync(ruta).filter(f => f.match(/\.(jpg|jpeg|png)$/i)).map(f => `${ruta}/${f}`);
+            todasLasFotos = todasLasFotos.concat(fotos);
+        }
+    });
+    if (todasLasFotos.length === 0) return null;
+    let disponibles = todasLasFotos.filter(f => !imagenesUsadasEnSesion.includes(f));
+    if (disponibles.length === 0) {
+        imagenesUsadasEnSesion = [];
+        disponibles = todasLasFotos;
+    }
+    const seleccionada = disponibles[Math.floor(Math.random() * disponibles.length)];
+    imagenesUsadasEnSesion.push(seleccionada);
+    return seleccionada;
+}
+
+// --- LÓGICA DE PERSISTENCIA Y CUESTIONARIO ---
+async function iniciarCuestionario() {
+    const rutaConfig = "./config_campana.json";
+    
+    if (fs.existsSync(rutaConfig)) {
+        console.log("\n♻️ Se detectó una configuración de campaña activa.");
+        const resp = await question("¿Deseas continuar con la campaña anterior? (S/N): ");
+        if (resp.toLowerCase() === 's') {
+            return JSON.parse(fs.readFileSync(rutaConfig, 'utf8'));
+        }
+    }
+
+    console.log("\n=== CONFIGURACIÓN DE CAMPAÑA 🛍️   MI TIENDA WA  🛍️ ===\n");
+    console.log("1. Solo Texto | 2. Imagen + Texto");
+    const tipoCampaña = await question("Selecciona: ");
+
+    let modoEnvio = "GLOBAL", carpetas = [];
+    if (tipoCampaña === "2") {
+        console.log("\nA. Mensaje Global | B. Catálogo Individual");
+        modoEnvio = (await question("Selecciona: ")).toUpperCase();
+        const numCarp = parseInt(await question("\n1. ¿Cuántas carpetas de imágenes? "));
+        for (let i = 0; i < numCarp; i++) carpetas.push((await question(`   Ruta carpeta ${i+1}: `)).trim());
+    }
+    
+    const rutaGrupos = (await question("\n2. Ruta del archivo grupos.txt: ")).trim();
+    let titulo = "", desc = [], precio = "";
+
+    if (tipoCampaña === "1" || modoEnvio === "A") {
+        titulo = await question("\n3. Título: ");
+        console.log("4. Descripción (FIN para terminar):");
+        for await (const l of rl) { if (l.trim().toUpperCase() === 'FIN') break; desc.push(l.trim()); }
+        precio = await question("\n5. Precio: ");
+    } else {
+        console.log("\n4. Descripción extra (FIN para terminar):");
+        for await (const l of rl) { if (l.trim().toUpperCase() === 'FIN') break; desc.push(l.trim()); }
+    }
+
+    const url = await question("\n6. URL: ");
+    const numRafagas = parseInt(await question("\n7. ¿Cuántas ráfagas diarias? "));
+    let ráfagas = [];
+    for (let i = 0; i < numRafagas; i++) {
+        console.log(`\n--- Ráfaga ${i+1} ---`);
+        const hIni = await question(`   Hora inicio: `);
+        const hFin = await question(`   Hora fin: `);
+        ráfagas.push({ hIni, hFin });
+    }
+    
+    const configFinal = { tipoCampaña, modoEnvio, carpetas, rutaGrupos, titulo, desc, precio, url, ráfagas };
+    fs.writeFileSync(rutaConfig, JSON.stringify(configFinal, null, 2));
+    return configFinal;
+}
+
+async function ejecutar() {
+    const { state, saveCreds } = await useMultiFileAuthState('sesion_auth');
+    const sock = makeWASocket({ 
+        auth: state, 
+        printQRInTerminal: false,
+        logger: pino({ level: "silent" }), 
+        browser: ["Ubuntu", "Chrome", "20.0.04"] 
+    });
+
+    sock.ev.on("creds.update", saveCreds);
+
+    sock.ev.on("connection.update", async (u) => {
+        const { connection, lastDisconnect } = u;
+
+        if (connection === "connecting" && !sock.authState.creds.registered) {
+            console.log("\n--- INICIANDO CONEXIÓN SEGURA ---");
+            await delay(5000);
+            try {
+                const numero = await question("\nIngresa tu número de WhatsApp (ej. 521...): ");
+                const code = await sock.requestPairingCode(numero.trim());
+                console.log("\n======================================");
+                console.log(`✅ TU CÓDIGO DE EMPAREJAMIENTO ES: ${code}`);
+                console.log("======================================\n");
+            } catch (err) {
+                console.log("Error al solicitar código, reintentando...", err);
+            }
+        }
+
+        if (connection === "close") {
+            const reason = lastDisconnect?.error?.output?.statusCode;
+            if (reason !== DisconnectReason.loggedOut) {
+                console.log("🔄 Conexión perdida, reintentando...");
+                ejecutar();
+            }
+        }
+
+        if (connection === "open") {
+            console.log("\n✅ WhatsApp Conectado.");
+            await extraerGrupos(sock);
+            const conf = await iniciarCuestionario();
+            
+            while (true) {
+                for (let r = 0; r < conf.ráfagas.length; r++) {
+                    const ventana = conf.ráfagas[r];
+                    await esperarInicio(ventana.hIni);
+                    
+                    imagenesUsadasEnSesion = [];
+                    // RECARGA DINÁMICA DE GRUPOS EN CADA RÁFAGA
+                    if (!fs.existsSync(conf.rutaGrupos)) {
+                        console.log("❌ Archivo de grupos no encontrado. Saltando ráfaga.");
+                        continue;
+                    }
+                    let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
+                    grupos = grupos.sort(() => Math.random() - 0.5);
+
+                    for (let i = 0; i < grupos.length; i++) {
+                        // SEGURO DE CONEXIÓN: Solo enviar si el socket está activo
+                        if (sock.ws.readyState !== 1) {
+                            console.log("⏳ Esperando que el socket se estabilice...");
+                            while (sock.ws.readyState !== 1) await delay(2000);
+                        }
+
+                        let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
+                        if (!idG.includes('@g.us')) idG += '@g.us';
+
+                        let tituloEnvio = conf.titulo, precioEnvio = conf.precio, imgPath = null;
+
+                        if (conf.tipoCampaña === "2") {
+                            imgPath = obtenerImagenAleatoria(conf.carpetas);
+                            if (imgPath && (conf.modoEnvio === "B" || imgPath.includes('_'))) {
+                                const nombreArchivo = imgPath.split('/').pop();
+                                const partes = nombreArchivo.split('_');
+                                if (partes.length > 1) {
+                                    tituloEnvio = partes[0].replace(/-/g, ' ');
+                                    precioEnvio = partes[1].split('.')[0];
+                                }
+                            }
+                        }
+
+                        const msj = `> ${obtenerSaludo(nombreG)}\n\n` +
+                                    `${getRandEmoji('titulo')} *_${tituloEnvio.toUpperCase()}_*\n\n` +
+                                    `${getRandEmoji('desc')} *_Descripción:_* \n\n` +
+                                    `_${conf.desc.join('_\n_')}_\n\n` +
+                                    `${getRandEmoji('precio')} *_PRECIO:_* *_$${precioEnvio.trim()}_*\n\n` +
+                                    `${getRandEmoji('url')} *_Más info:_* \n${conf.url.trim()}`;
+
+                        try {
+                            await sock.sendPresenceUpdate('composing', idG);
+                            await delay(2000);
+                            if (conf.tipoCampaña === "2" && imgPath) {
+                                await sock.sendMessage(idG, { image: fs.readFileSync(imgPath), caption: msj });
+                            } else {
+                                await sock.sendMessage(idG, { text: msj }, { linkPreview: true });
+                            }
+                            console.log(`✅ [${i+1}/${grupos.length}] -> ${nombreG}`);
+                        } catch (e) { console.log(`❌ Error en: ${nombreG}`); }
+
+                        if (i < grupos.length - 1) {
+                            // --- CÁLCULO DINÁMICO DE TIEMPO ---
+                            const ahora = new Date();
+                            const ahoraMins = (ahora.getHours() * 60) + ahora.getMinutes();
+                            const finMins = (parseInt(ventana.hFin.slice(0,2)) * 60) + parseInt(ventana.hFin.slice(2));
+                            const minsRestantes = finMins - ahoraMins;
+                            const gruposRestantes = grupos.length - i;
+                            
+                            let espera = 30000; // Por defecto 30s
+                            if (minsRestantes > 0) {
+                                espera = (minsRestantes * 60000) / gruposRestantes;
+                            }
+                            
+                            // Seguridad anti-ban (mínimo 15s)
+                            espera = Math.max(15000, espera);
+                            
+                            console.log(`⏳ Pausa dinámica: ${Math.floor(espera/1000)}s. (Faltan ${minsRestantes} min para el fin)`);
+                            await delay(espera);
+                        }
+                    }
+                }
+                await esperarHastaMañana(conf.ráfagas[0].hIni);
+            }
+        }
+    });
+}
+ejecutar().catch(console.error);
