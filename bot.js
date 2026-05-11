@@ -40,6 +40,11 @@ function obtenerHoraActualNum() {
     return parseInt(ahora.getHours().toString().padStart(2, '0') + ahora.getMinutes().toString().padStart(2, '0'));
 }
 
+function obtenerMinutosActuales() {
+    const ahora = new Date();
+    return ahora.getHours() * 60 + ahora.getMinutes();
+}
+
 async function esperarInicio(hInicio) {
     const inicioTarget = parseInt(hInicio);
     console.log(`\n⏳ Modo Vigilancia: Esperando a las ${hInicio}.`);
@@ -84,7 +89,6 @@ function obtenerImagenAleatoria(carpetas) {
     if (todasLasFotos.length === 0) return null;
 
     let disponibles = todasLasFotos.filter(f => !imagenesUsadasEnSesion.includes(f));
-    
     if (disponibles.length === 0) {
         imagenesUsadasEnSesion = [];
         disponibles = todasLasFotos;
@@ -96,7 +100,8 @@ function obtenerImagenAleatoria(carpetas) {
 }
 
 async function iniciarCuestionario() {
-    console.log("\n=== CONFIGURACIÓN DE CAMPAÑA SATOROUGH ===\n");
+    // FIX 2: Nombre corregido
+    console.log("\n=== WA GROUP MARKETING PRO - MI TIENDA WA ===\n");
     console.log("1. Solo Texto | 2. Imagen + Texto");
     const tipoCampaña = await question("Selecciona: ");
 
@@ -126,12 +131,15 @@ async function iniciarCuestionario() {
     let ráfagas = [];
     for (let i = 0; i < numRafagas; i++) {
         console.log(`\n--- Ráfaga ${i+1} ---`);
-        const hIni = await question(`   Hora inicio: `);
-        const hFin = await question(`   Hora fin: `);
+        const hIni = await question(`   Hora inicio (HHMM): `);
+        const hFin = await question(`   Hora fin (HHMM):   `);
         ráfagas.push({ hIni, hFin });
     }
     return { tipoCampaña, modoEnvio, carpetas, rutaGrupos, titulo, desc, precio, url, ráfagas };
 }
+
+// FIX 4: Flag para evitar que reconexión reinicie la campaña
+let campañaActiva = false;
 
 async function ejecutar() {
     const { state, saveCreds } = await useMultiFileAuthState('sesion_auth');
@@ -147,10 +155,9 @@ async function ejecutar() {
     sock.ev.on("connection.update", async (u) => {
         const { connection, lastDisconnect } = u;
 
-        // --- EMPAREJAMIENTO: igual que el original, dentro de "connecting" ---
         if (connection === "connecting" && !sock.authState.creds.registered) {
             console.log("\n--- INICIANDO CONEXIÓN SEGURA ---");
-            await delay(5000); // Espera de seguridad para estabilizar la señal
+            await delay(5000);
             try {
                 const numero = await question("\nIngresa tu número de WhatsApp (ej. 521...): ");
                 const code = await sock.requestPairingCode(numero.trim());
@@ -167,9 +174,17 @@ async function ejecutar() {
             if (shouldReconnect) ejecutar();
         }
 
+        // FIX 4: Solo inicia cuestionario si no hay campaña activa
         if (connection === "open") {
             console.log("\n✅ WhatsApp Conectado.");
             await extraerGrupos(sock);
+
+            if (campañaActiva) {
+                console.log("🔄 Reconexión exitosa. Continuando campaña...");
+                return;
+            }
+
+            campañaActiva = true;
             const conf = await iniciarCuestionario();
             
             while (true) {
@@ -181,9 +196,26 @@ async function ejecutar() {
                     let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
                     grupos = grupos.sort(() => Math.random() - 0.5);
 
-                    const durMins = (parseInt(ventana.hFin.slice(0,2))*60 + parseInt(ventana.hFin.slice(2))) - (parseInt(ventana.hIni.slice(0,2))*60 + parseInt(ventana.hIni.slice(2)));
+                    // FIX 3: Cálculo estricto de tiempo sin ruido que desborde la ventana
+                    const hIniMins = parseInt(ventana.hIni.slice(0,2)) * 60 + parseInt(ventana.hIni.slice(2));
+                    const hFinMins = parseInt(ventana.hFin.slice(0,2)) * 60 + parseInt(ventana.hFin.slice(2));
+                    const durMins = hFinMins - hIniMins;
+                    const durMs = durMins * 60000;
+
+                    // Tiempo disponible dividido entre grupos, mínimo 25 segundos
+                    const esperaBase = Math.max(25000, Math.floor(durMs / grupos.length));
+                    
+                    console.log(`\n📋 Ráfaga ${r+1}: ${grupos.length} grupos | Ventana: ${durMins} min | Pausa base: ${Math.floor(esperaBase/1000)}s`);
 
                     for (let i = 0; i < grupos.length; i++) {
+
+                        // FIX 3: Si ya se acabó el tiempo de la ventana, detener
+                        const minutosActuales = obtenerMinutosActuales();
+                        if (minutosActuales >= hFinMins) {
+                            console.log(`\n⏱️ Ventana de tiempo agotada. Grupos enviados: ${i}/${grupos.length}`);
+                            break;
+                        }
+
                         let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
                         if (!idG.includes('@g.us')) idG += '@g.us';
 
@@ -220,11 +252,17 @@ async function ejecutar() {
                         } catch (e) { console.log(`❌ Error en: ${nombreG}`); }
 
                         if (i < grupos.length - 1) {
-                            const espera = Math.max(25000, (durMins * 60000 / grupos.length) + (Math.random() * 180000 - 90000));
-                            console.log(`⏳ Pausa de ${Math.floor(espera/1000)}s...`);
-                            await delay(espera);
+                            // FIX 3: Pausa fija sin ruido aleatorio que desborde
+                            const minutosRestantes = hFinMins - obtenerMinutosActuales();
+                            const gruposRestantes = grupos.length - i - 1;
+                            const esperaAjustada = gruposRestantes > 0 
+                                ? Math.max(25000, Math.floor((minutosRestantes * 60000) / gruposRestantes))
+                                : 25000;
+                            console.log(`⏳ Pausa de ${Math.floor(esperaAjustada/1000)}s...`);
+                            await delay(esperaAjustada);
                         }
                     }
+                    console.log(`\n✅ Ráfaga ${r+1} finalizada.`);
                 }
                 await esperarHastaMañana(conf.ráfagas[0].hIni);
             }
