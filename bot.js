@@ -69,6 +69,7 @@ function obtenerSaludo(nombreG) {
     return `${e} _${saludo[Math.floor(Math.random() * saludo.length)]} miembros de:_ *_${nombreG}_*`;
 }
 
+// --- POOL DE IMÁGENES SEGURO (SIN BORRADO) ---
 let imagenesUsadasEnSesion = [];
 
 function obtenerImagenAleatoria(carpetas) {
@@ -95,14 +96,6 @@ function obtenerImagenAleatoria(carpetas) {
 }
 
 async function iniciarCuestionario() {
-    const rutaConfig = "./config_campana.json";
-    if (fs.existsSync(rutaConfig)) {
-        const data = JSON.parse(fs.readFileSync(rutaConfig, 'utf8'));
-        console.log(`\n♻️ Campaña detectada: ${data.titulo || "Imagen + Texto"}`);
-        const usar = await question("¿Deseas continuar con esta campaña? (S/N): ");
-        if (usar.toLowerCase() === 's') return data;
-    }
-
     console.log("\n=== CONFIGURACIÓN DE CAMPAÑA SATOROUGH ===\n");
     console.log("1. Solo Texto | 2. Imagen + Texto");
     const tipoCampaña = await question("Selecciona: ");
@@ -137,9 +130,7 @@ async function iniciarCuestionario() {
         const hFin = await question(`   Hora fin: `);
         ráfagas.push({ hIni, hFin });
     }
-    const conf = { tipoCampaña, modoEnvio, carpetas, rutaGrupos, titulo, desc, precio, url, ráfagas };
-    fs.writeFileSync(rutaConfig, JSON.stringify(conf, null, 2));
-    return conf;
+    return { tipoCampaña, modoEnvio, carpetas, rutaGrupos, titulo, desc, precio, url, ráfagas };
 }
 
 async function ejecutar() {
@@ -156,9 +147,10 @@ async function ejecutar() {
     sock.ev.on("connection.update", async (u) => {
         const { connection, lastDisconnect } = u;
 
+        // --- EMPAREJAMIENTO: igual que el original, dentro de "connecting" ---
         if (connection === "connecting" && !sock.authState.creds.registered) {
             console.log("\n--- INICIANDO CONEXIÓN SEGURA ---");
-            await delay(5000); 
+            await delay(5000); // Espera de seguridad para estabilizar la señal
             try {
                 const numero = await question("\nIngresa tu número de WhatsApp (ej. 521...): ");
                 const code = await sock.requestPairingCode(numero.trim());
@@ -186,9 +178,10 @@ async function ejecutar() {
                     await esperarInicio(ventana.hIni);
                     
                     imagenesUsadasEnSesion = [];
-                    // CARGA DINÁMICA DE GRUPOS ANTES DE CADA RÁFAGA
                     let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
                     grupos = grupos.sort(() => Math.random() - 0.5);
+
+                    const durMins = (parseInt(ventana.hFin.slice(0,2))*60 + parseInt(ventana.hFin.slice(2))) - (parseInt(ventana.hIni.slice(0,2))*60 + parseInt(ventana.hIni.slice(2)));
 
                     for (let i = 0; i < grupos.length; i++) {
                         let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
@@ -227,21 +220,8 @@ async function ejecutar() {
                         } catch (e) { console.log(`❌ Error en: ${nombreG}`); }
 
                         if (i < grupos.length - 1) {
-                            // CÁLCULO DINÁMICO DE PAUSA PARA LLEGAR A TIEMPO
-                            const ahora = new Date();
-                            const ahoraMins = (ahora.getHours() * 60) + ahora.getMinutes();
-                            const finMins = (parseInt(ventana.hFin.slice(0,2)) * 60) + parseInt(ventana.hFin.slice(2));
-                            const minsRestantes = finMins - ahoraMins;
-                            const gruposRestantes = grupos.length - i;
-                            
-                            let espera = 25000; 
-                            if (minsRestantes > 0) {
-                                espera = (minsRestantes * 60000) / gruposRestantes;
-                            }
-                            // Mínimo de seguridad para evitar spam
-                            espera = Math.max(15000, espera);
-
-                            console.log(`⏳ Pausa de ${Math.floor(espera/1000)}s... (Quedan ${minsRestantes} min)`);
+                            const espera = Math.max(25000, (durMins * 60000 / grupos.length) + (Math.random() * 180000 - 90000));
+                            console.log(`⏳ Pausa de ${Math.floor(espera/1000)}s...`);
                             await delay(espera);
                         }
                     }
