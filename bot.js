@@ -203,22 +203,23 @@ function obtenerProductoDelDia(productos, rafagaIdx) {
     return productosActivos[(diaDelAño + rafagaIdx) % productosActivos.length].idx;
 }
 
-// --- COMANDOS POR WHATSAPP ---
+// --- GLOBALS ---
 let productoActivoPorRafaga = [];
-let sockGlobal = null; // referencia global al sock activo
+let sockGlobal = null;
+let confGlobal = null;
+let campañaActiva = false;
 let reiniciando = false;
 let ejecutandoReinicio = false;
 
+// --- COMANDOS POR WHATSAPP ---
 function procesarComandoWA(texto, conf) {
     const t = texto.trim();
 
-    // reiniciar
     if (/^reiniciar$/i.test(t)) {
         reiniciando = true;
         return "🔄 Reiniciando conexión...";
     }
 
-    // rafaga X producto Y
     const mRafaga = t.match(/^r[aá]faga\s+(\d+)\s+producto\s+(\d+)$/i);
     if (mRafaga) {
         const r = parseInt(mRafaga[1]) - 1;
@@ -229,7 +230,6 @@ function procesarComandoWA(texto, conf) {
         return `✅ Ráfaga ${r+1} usará producto ${p+1}: ${conf.productos[p].titulo}`;
     }
 
-    // producto X campo valor
     const mProducto = t.match(/^producto\s+(\d+)\s+(\w+)(?:\s+(.+))?$/i);
     if (mProducto) {
         const p = parseInt(mProducto[1]) - 1;
@@ -247,7 +247,6 @@ function procesarComandoWA(texto, conf) {
         return `❌ Campo desconocido: ${campo}`;
     }
 
-    // bloquear/desbloquear ID@g.us
     const mBloquear = t.match(/^(bloquear|desbloquear)\s+(\S+@g\.us)$/i);
     if (mBloquear) {
         const accion = mBloquear[1].toLowerCase();
@@ -265,11 +264,7 @@ function procesarComandoWA(texto, conf) {
     return null;
 }
 
-// --- FLAG CAMPAÑA ---
-let campañaActiva = false;
-let confGlobal = null;
-
-// --- REGISTRAR LISTENER DE MENSAJES EN SOCK ACTIVO ---
+// --- LISTENER DE MENSAJES ---
 function registrarListenerMensajes(sock) {
     sock.ev.on("messages.upsert", async ({ messages }) => {
         const msg = messages[0];
@@ -293,21 +288,22 @@ function registrarListenerMensajes(sock) {
             console.log(`\n📩 Comando: "${texto}"\n📤 Respuesta: ${respuesta}`);
             try { await sock.sendMessage(remitente, { text: respuesta }); } catch(e) {}
 
-            // Ejecutar reinicio si se solicitó
             if (reiniciando) {
                 reiniciando = false;
                 ejecutandoReinicio = true;
                 await delay(2000);
                 console.log("\n🔄 Ejecutando reinicio de conexión...");
                 try { sock.ws.close(); } catch(e) {}
-                ejecutar();
             }
         }
     });
 }
 
+// --- MOTOR PRINCIPAL ---
 async function ejecutar() {
     ejecutandoReinicio = false;
+
+    const { state, saveCreds } = await useMultiFileAuthState('sesion_auth');
     const sock = makeWASocket({ 
         auth: state, 
         printQRInTerminal: false,
@@ -317,8 +313,6 @@ async function ejecutar() {
 
     sockGlobal = sock;
     sock.ev.on("creds.update", saveCreds);
-
-    // Registrar listener de mensajes en esta instancia
     registrarListenerMensajes(sock);
 
     sock.ev.on("connection.update", async (u) => {
@@ -337,7 +331,10 @@ async function ejecutar() {
         }
 
         if (connection === "close") {
-            if (ejecutandoReinicio) return;
+            if (ejecutandoReinicio) {
+                ejecutar();
+                return;
+            }
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== 401;
             if (shouldReconnect) ejecutar();
         }
@@ -433,7 +430,6 @@ async function ejecutar() {
                                     `${getRandEmoji('precio')} *_PRECIO:_* *_$${precioEnvio.trim()}_*\n\n` +
                                     `${getRandEmoji('url')} *_Más info:_* \n${urlEnvio.trim()}`;
 
-                        let enviado = false;
                         for (let intento = 1; intento <= 2; intento++) {
                             try {
                                 await sockGlobal.sendPresenceUpdate('composing', idG);
@@ -444,7 +440,6 @@ async function ejecutar() {
                                     await sockGlobal.sendMessage(idG, { text: msj }, { linkPreview: true });
                                 }
                                 console.log(`✅ [${i+1}/${grupos.length}] -> ${nombreG}`);
-                                enviado = true;
                                 enviados++;
                                 break;
                             } catch (e) {
@@ -460,7 +455,6 @@ async function ejecutar() {
                         }
                     }
 
-                    // --- REPORTE ---
                     const horaFin = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
                     const reporte = `📊 *Reporte Ráfaga ${r+1}*\n\n` +
                                     `🕐 Finalizada: ${horaFin}\n` +
