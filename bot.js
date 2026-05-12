@@ -17,6 +17,40 @@ const BACKUP_PATH    = "/storage/emulated/0/MiTiendaWA_backup.json";
 const JID_PATH       = "/storage/emulated/0/MiTiendaWA_jid.txt";
 const BLACKLIST_PATH = "/storage/emulated/0/MiTiendaWA_blacklist.json";
 
+// --- MENSAJES DE ESPERA (30 variantes) ---
+const mensajesEspera = [
+    "⏳ Sistema activo. Próxima campaña en camino.",
+    "🔋 Todo en línea. Preparando siguiente ráfaga.",
+    "📊 Monitoreando. Campaña programada y lista.",
+    "🚀 Sistema operando correctamente. En espera.",
+    "✅ Conexión estable. Próximo envío programado.",
+    "🌟 Herramienta activa. Trabajando en segundo plano.",
+    "📡 Señal estable. Campaña lista para ejecutarse.",
+    "⚙️ Proceso en curso. Todo configurado correctamente.",
+    "🎯 En espera del horario programado. Listo.",
+    "💡 Sistema encendido. Próxima ráfaga en camino.",
+    "🔄 Verificando configuración. Todo en orden.",
+    "📱 Conexión activa. Campaña lista para disparar.",
+    "🌐 En línea y monitoreando. Sin novedades.",
+    "⭐ Sistema estable. Esperando ventana de envío.",
+    "🔔 Alerta programada activa. Todo funcionando.",
+    "📦 Productos listos. Esperando horario de campaña.",
+    "🛒 Configuración cargada. Sistema en espera.",
+    "💎 Operando sin interrupciones. Campaña próxima.",
+    "🏷️ Lista de grupos actualizada. En espera.",
+    "📝 Configuración verificada. Todo listo.",
+    "🌤️ Sistema funcionando. Próxima ráfaga programada.",
+    "☀️ Operación normal. Campaña en cuenta regresiva.",
+    "🔍 Revisando parámetros. Sistema operativo.",
+    "💹 Todo en orden. Esperando ventana de tiempo.",
+    "🎈 Sistema activo y estable. Sin interrupciones.",
+    "🌈 Conexión verificada. Campaña lista.",
+    "⚡ Energía total. Sistema listo para siguiente envío.",
+    "🧠 Procesando. Próxima campaña en preparación.",
+    "🎓 Sistema optimizado. Esperando horario programado.",
+    "🏹 En posición. Listo para siguiente ráfaga."
+];
+
 // --- EMOJIS ---
 const dicEmoji = {
     saludo: ["✨","🌤️","🌅","☕","🤝","👋","🎈","🍀","🎐","☀️","🌈","🙌","⭐","🌻","🔋"],
@@ -81,16 +115,49 @@ function obtenerMinutosActuales() {
     const ahora = new Date();
     return ahora.getHours() * 60 + ahora.getMinutes();
 }
-async function esperarInicio(hInicio) {
+
+// --- ESPERA CON MENSAJES DE ACTIVIDAD ---
+let mensajeEsperaIdx = Math.floor(Math.random() * mensajesEspera.length);
+async function esperarInicio(hInicio, sock) {
     const inicioTarget = parseInt(hInicio);
     console.log(`\n⏳ Modo Vigilancia: Esperando a las ${hInicio}.`);
-    while (obtenerHoraActualNum() < inicioTarget) { process.stdout.write("."); await delay(15000); }
+    
+    while (obtenerHoraActualNum() < inicioTarget) {
+        // Mensaje de actividad cada 10-15 minutos (variado)
+        const intervalo = (10 + Math.floor(Math.random() * 6)) * 60000;
+        await delay(intervalo);
+        
+        if (obtenerHoraActualNum() >= inicioTarget) break;
+
+        const msj = mensajesEspera[mensajeEsperaIdx % mensajesEspera.length];
+        mensajeEsperaIdx++;
+        try {
+            if (jidAutorizado && sock) {
+                await sock.sendMessage(jidAutorizado, { text: msj });
+            }
+        } catch(e) {}
+    }
     console.log(`\n✅ Hora alcanzada. Iniciando envíos...`);
 }
-async function esperarHastaMañana(hInicioPrimeraRafaga) {
+
+async function esperarHastaMañana(hInicioPrimeraRafaga, sock) {
     console.log(`\n🌙 Jornada diaria finalizada.`);
     console.log(`💤 Reposando hasta mañana a las ${hInicioPrimeraRafaga}...`);
-    while (obtenerHoraActualNum() !== parseInt(hInicioPrimeraRafaga)) { await delay(60000); }
+
+    while (obtenerHoraActualNum() !== parseInt(hInicioPrimeraRafaga)) {
+        const intervalo = (10 + Math.floor(Math.random() * 6)) * 60000;
+        await delay(intervalo);
+
+        if (obtenerHoraActualNum() === parseInt(hInicioPrimeraRafaga)) break;
+
+        const msj = mensajesEspera[mensajeEsperaIdx % mensajesEspera.length];
+        mensajeEsperaIdx++;
+        try {
+            if (jidAutorizado && sock) {
+                await sock.sendMessage(jidAutorizado, { text: msj });
+            }
+        } catch(e) {}
+    }
     console.log("\n☀️ ¡Nuevo día! Reiniciando ráfagas...");
 }
 
@@ -215,10 +282,7 @@ let ejecutandoReinicio = false;
 function procesarComandoWA(texto, conf) {
     const t = texto.trim();
 
-    if (/^reiniciar$/i.test(t)) {
-        reiniciando = true;
-        return "🔄 Reiniciando conexión...";
-    }
+    if (/^reiniciar$/i.test(t)) { reiniciando = true; return "🔄 Reiniciando conexión..."; }
 
     const mRafaga = t.match(/^r[aá]faga\s+(\d+)\s+producto\s+(\d+)$/i);
     if (mRafaga) {
@@ -260,7 +324,6 @@ function procesarComandoWA(texto, conf) {
             return `✅ Grupo desbloqueado: ${idGrupo}`;
         }
     }
-
     return null;
 }
 
@@ -282,6 +345,9 @@ function registrarListenerMensajes(sock) {
         }
         if (remitente !== jidAutorizado) return;
         if (!confGlobal) return;
+
+        // Ignorar mensajes de espera que el propio bot envió
+        if (mensajesEspera.includes(texto)) return;
 
         const respuesta = procesarComandoWA(texto, confGlobal);
         if (respuesta) {
@@ -331,10 +397,7 @@ async function ejecutar() {
         }
 
         if (connection === "close") {
-            if (ejecutandoReinicio) {
-                ejecutar();
-                return;
-            }
+            if (ejecutandoReinicio) { ejecutar(); return; }
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== 401;
             if (shouldReconnect) ejecutar();
         }
@@ -375,11 +438,14 @@ async function ejecutar() {
 
             while (true) {
                 let rafagaInicial = obtenerRafagaInicial(conf.ráfagas);
-                if (rafagaInicial === -1) { await esperarHastaMañana(conf.ráfagas[0].hIni); rafagaInicial = 0; }
+                if (rafagaInicial === -1) { 
+                    await esperarHastaMañana(conf.ráfagas[0].hIni, sockGlobal); 
+                    rafagaInicial = 0; 
+                }
 
                 for (let r = rafagaInicial; r < conf.ráfagas.length; r++) {
                     const ventana = conf.ráfagas[r];
-                    await esperarInicio(ventana.hIni);
+                    await esperarInicio(ventana.hIni, sockGlobal);
 
                     imagenesUsadasEnSesion = [];
                     let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
@@ -470,7 +536,7 @@ async function ejecutar() {
                     }
                     console.log(`\n✅ Ráfaga ${r+1} finalizada.`);
                 }
-                await esperarHastaMañana(conf.ráfagas[0].hIni);
+                await esperarHastaMañana(conf.ráfagas[0].hIni, sockGlobal);
             }
         }
     });
