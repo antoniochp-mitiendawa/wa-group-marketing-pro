@@ -14,14 +14,15 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const question = (query) => new Promise((resolve) => rl.question(query, resolve));
 
 const BACKUP_PATH = "/storage/emulated/0/MiTiendaWA_backup.json";
+const JID_PATH = "/storage/emulated/0/MiTiendaWA_jid.txt";
 
 // --- BASE DE DATOS DE EMOJIS ---
 const dicEmoji = {
     saludo: ["✨", "🌤️", "🌅", "☕", "🤝", "👋", "🎈", "🍀", "🎐", "☀️", "🌈", "🙌", "⭐", "🌻", "🔋"],
     titulo: ["📖", "📗", "📘", "📙", "📓", "📒", "📑", "📚", "🔬", "🎓", "🧠", "🧐", "🚀", "💎", "💡"],
-    desc: ["📋", "📌", "📂", "💾", "🔍", "📍", "📝", "🖋️", "📁", "🗂️", "🎬", "⚙️", "📢", "✅", "⚖️"],
+    desc:   ["📋", "📌", "📂", "💾", "🔍", "📍", "📝", "🖋️", "📁", "🗂️", "🎬", "⚙️", "📢", "✅", "⚖️"],
     precio: ["💰", "🏷️", "💵", "💳", "🎁", "💎", "💸", "🪙", "💹", "🛒", "💲", "🎯", "🔥", "📦", "🔔"],
-    url: ["🔗", "⬇️", "👉", "📱", "📥", "📲", "⚡", "🏹", "🖱️", "🖥️", "🌐", "📍", "✅", "🔘", "🚩"]
+    url:    ["🔗", "⬇️", "👉", "📱", "📥", "📲", "⚡", "🏹", "🖱️", "🖥️", "🌐", "📍", "✅", "🔘", "🚩"]
 };
 
 const getRandEmoji = (cat) => dicEmoji[cat][Math.floor(Math.random() * dicEmoji[cat].length)];
@@ -36,11 +37,25 @@ function guardarBackup(conf) {
 
 function cargarBackup() {
     try {
-        if (fs.existsSync(BACKUP_PATH)) {
-            return JSON.parse(fs.readFileSync(BACKUP_PATH, 'utf8'));
-        }
+        if (fs.existsSync(BACKUP_PATH)) return JSON.parse(fs.readFileSync(BACKUP_PATH, 'utf8'));
     } catch (e) { console.log("⚠️ Error al leer el backup."); }
     return null;
+}
+
+// --- JID AUTORIZADO ---
+let jidAutorizado = null;
+
+function cargarJid() {
+    try {
+        if (fs.existsSync(JID_PATH)) return fs.readFileSync(JID_PATH, 'utf8').trim();
+    } catch (e) {}
+    return null;
+}
+
+function guardarJid(jid) {
+    try {
+        fs.writeFileSync(JID_PATH, jid, 'utf8');
+    } catch (e) {}
 }
 
 // --- EXTRACCIÓN DE GRUPOS ---
@@ -90,8 +105,8 @@ function obtenerSaludo(nombreG) {
     const hora = new Date().getHours();
     const e = getRandEmoji('saludo');
     const mañana = ["Buenos días", "Buen día", "Excelente mañana"];
-    const tarde = ["Buenas tardes", "Buena tarde", "Un placer saludarte"];
-    const noche = ["Buenas noches", "Linda noche", "Saludos nocturnos"];
+    const tarde  = ["Buenas tardes", "Buena tarde", "Un placer saludarte"];
+    const noche  = ["Buenas noches", "Linda noche", "Saludos nocturnos"];
     let saludo = (hora >= 6 && hora < 12) ? mañana : (hora >= 12 && hora < 19) ? tarde : noche;
     return `${e} _${saludo[Math.floor(Math.random() * saludo.length)]} miembros de:_ *_${nombreG}_*`;
 }
@@ -103,7 +118,9 @@ function obtenerImagenAleatoria(carpetas) {
     let todasLasFotos = [];
     carpetas.forEach(ruta => {
         if (fs.existsSync(ruta)) {
-            const fotos = fs.readdirSync(ruta).filter(f => f.match(/\.(jpg|jpeg|png)$/i)).map(f => `${ruta}/${f}`);
+            const fotos = fs.readdirSync(ruta)
+                .filter(f => f.match(/\.(jpg|jpeg|png)$/i))
+                .map(f => `${ruta}/${f}`);
             todasLasFotos = todasLasFotos.concat(fotos);
         }
     });
@@ -124,19 +141,16 @@ async function iniciarCuestionario() {
     console.log("1. Solo Texto | 2. Imagen + Texto");
     const tipoCampaña = await question("Selecciona: ");
 
-    let modoEnvio = "GLOBAL", carpetas = [];
+    let modoEnvio = "GLOBAL";
+    let productos = [];
+
     if (tipoCampaña === "2") {
         console.log("\nA. Mensaje Global | B. Catálogo Individual");
         modoEnvio = (await question("Selecciona: ")).toUpperCase();
-        const numCarp = parseInt(await question("\n1. ¿Cuántas carpetas de imágenes? "));
-        for (let i = 0; i < numCarp; i++) carpetas.push((await question(`   Ruta carpeta ${i+1}: `)).trim());
     }
 
-    const rutaGrupos = (await question("\n2. Ruta del archivo grupos.txt: ")).trim();
-
-    // --- MÚLTIPLES PRODUCTOS GLOBALES ---
-    let productos = [];
     if (tipoCampaña === "1" || modoEnvio === "A") {
+        // --- MENSAJE GLOBAL: capturar productos con sus carpetas ---
         const numProductos = parseInt(await question("\n¿Cuántos productos globales vas a configurar? "));
         for (let p = 0; p < numProductos; p++) {
             console.log(`\n--- Producto ${p+1} ---`);
@@ -150,11 +164,20 @@ async function iniciarCuestionario() {
             }
             const precio = await question("   Precio: ");
             const url = await question("   URL: ");
-            productos.push({ titulo, desc, precio, url });
+
+            // Carpeta de imágenes por producto (solo si es imagen+texto)
+            let carpetas = [];
+            if (tipoCampaña === "2") {
+                const numCarp = parseInt(await question("   ¿Cuántas carpetas de imágenes? "));
+                for (let c = 0; c < numCarp; c++) {
+                    carpetas.push((await question(`   Ruta carpeta ${c+1}: `)).trim());
+                }
+            }
+            productos.push({ titulo, desc, precio, url, carpetas });
         }
     } else {
-        // Catálogo individual: un solo bloque de desc y url
-        console.log("\n4. Descripción extra (FIN para terminar):");
+        // --- CATÁLOGO INDIVIDUAL ---
+        console.log("\nDescripción extra (FIN para terminar):");
         let desc = [];
         while (true) {
             const l = await question("");
@@ -162,25 +185,33 @@ async function iniciarCuestionario() {
             desc.push(l.trim());
         }
         const url = await question("\nURL: ");
-        productos.push({ titulo: "", desc, precio: "", url });
+        const numCarp = parseInt(await question("¿Cuántas carpetas de imágenes? "));
+        let carpetas = [];
+        for (let c = 0; c < numCarp; c++) {
+            carpetas.push((await question(`   Ruta carpeta ${c+1}: `)).trim());
+        }
+        productos.push({ titulo: "", desc, precio: "", url, carpetas });
     }
 
+    // --- GRUPOS: solo se pide una vez ---
+    const rutaGrupos = (await question("\nRuta del archivo grupos.txt: ")).trim();
+
+    // --- RÁFAGAS ---
     const numRafagas = parseInt(await question("\n¿Cuántas ráfagas diarias? "));
     let ráfagas = [];
     for (let i = 0; i < numRafagas; i++) {
         console.log(`\n--- Ráfaga ${i+1} ---`);
         const hIni = await question(`   Hora inicio (HHMM): `);
         const hFin = await question(`   Hora fin (HHMM):   `);
-        // Asignar producto a esta ráfaga si hay más de uno
         let productoIdx = 0;
         if (productos.length > 1) {
-            console.log(`   Productos disponibles: ${productos.map((p,i) => `${i+1}.${p.titulo}`).join(' | ')}`);
+            console.log(`   Productos: ${productos.map((p, i) => `${i+1}. ${p.titulo}`).join(' | ')}`);
             productoIdx = parseInt(await question(`   ¿Qué producto usa esta ráfaga? (número): `)) - 1;
         }
         ráfagas.push({ hIni, hFin, productoIdx });
     }
 
-    return { tipoCampaña, modoEnvio, carpetas, rutaGrupos, productos, ráfagas };
+    return { tipoCampaña, modoEnvio, productos, rutaGrupos, ráfagas };
 }
 
 // --- RÁFAGA INICIAL SEGÚN HORA ACTUAL ---
@@ -198,11 +229,9 @@ function obtenerRafagaInicial(ráfagas) {
 }
 
 // --- CONTROL POR WHATSAPP ---
-// productoActivoPorRafaga[r] = índice del producto asignado a ráfaga r
 let productoActivoPorRafaga = [];
 
 function procesarComandoWA(texto, conf) {
-    // Formato esperado: "rafaga 2 producto 3"
     const match = texto.match(/r[aá]faga\s*(\d+)\s*producto\s*(\d+)/i);
     if (match) {
         const r = parseInt(match[1]) - 1;
@@ -233,15 +262,26 @@ async function ejecutar() {
     // --- ESCUCHAR COMANDOS POR WHATSAPP ---
     sock.ev.on("messages.upsert", async ({ messages }) => {
         const msg = messages[0];
-        if (!msg || !msg.message) return;
+        if (!msg || !msg.message || msg.key.fromMe === false) return;
+
         const remitente = msg.key.remoteJid;
-        const miJid = sock.user?.id?.replace(/:.*@/, '@');
-        // Solo responder a mensajes del propio número (chat "Tú")
-        if (remitente !== miJid) return;
-        const texto = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+        const texto = msg.message.conversation || 
+                      msg.message.extendedTextMessage?.text || "";
         if (!texto) return;
+
+        // Registrar JID autorizado la primera vez
+        if (!jidAutorizado) {
+            jidAutorizado = remitente;
+            guardarJid(remitente);
+            console.log(`\n🔐 JID autorizado registrado: ${remitente}`);
+        }
+
+        if (remitente !== jidAutorizado) return;
+
+        console.log(`\n📩 Comando recibido: "${texto}"`);
         const respuesta = procesarComandoWA(texto, sock._conf);
         if (respuesta) {
+            console.log(`📤 Respondiendo: ${respuesta}`);
             await sock.sendMessage(remitente, { text: respuesta });
         }
     });
@@ -272,6 +312,10 @@ async function ejecutar() {
             console.log("\n✅ WhatsApp Conectado.");
             await extraerGrupos(sock);
 
+            // Cargar JID autorizado si existe
+            if (!jidAutorizado) jidAutorizado = cargarJid();
+            if (jidAutorizado) console.log(`🔐 JID autorizado cargado: ${jidAutorizado}`);
+
             if (campañaActiva) {
                 console.log("🔄 Reconexión exitosa. Continuando campaña...");
                 return;
@@ -280,12 +324,11 @@ async function ejecutar() {
             campañaActiva = true;
             let conf;
 
-            // --- BACKUP: preguntar si cargar o capturar de nuevo ---
+            // --- BACKUP ---
             const backup = cargarBackup();
             if (backup) {
                 console.log("\n╔══════════════════════════════════════╗");
-                console.log("║   💾 Se encontró una configuración   ║");
-                console.log("║        guardada anteriormente.        ║");
+                console.log("║   💾 Configuración guardada encontrada ║");
                 console.log("╠══════════════════════════════════════╣");
                 console.log("║  1. Cargar configuración guardada     ║");
                 console.log("║  2. Capturar nueva configuración      ║");
@@ -303,10 +346,7 @@ async function ejecutar() {
                 guardarBackup(conf);
             }
 
-            // Inicializar producto activo por ráfaga según configuración
             productoActivoPorRafaga = conf.ráfagas.map(r => r.productoIdx || 0);
-
-            // Guardar conf en sock para acceso desde el listener de mensajes
             sock._conf = conf;
 
             while (true) {
@@ -322,20 +362,23 @@ async function ejecutar() {
 
                     imagenesUsadasEnSesion = [];
 
-                    // Leer grupos frescos en cada ráfaga
+                    // Grupos frescos en cada ráfaga
                     let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
                     grupos = grupos.sort(() => Math.random() - 0.5);
 
-                    // Producto activo para esta ráfaga (puede haber cambiado por comando WA)
                     const pIdx = productoActivoPorRafaga[r] || 0;
                     const producto = conf.productos[pIdx];
 
                     const hIniMins = parseInt(ventana.hIni.slice(0,2)) * 60 + parseInt(ventana.hIni.slice(2));
                     const hFinMins = parseInt(ventana.hFin.slice(0,2)) * 60 + parseInt(ventana.hFin.slice(2));
                     const durMs = (hFinMins - hIniMins) * 60000;
-                    const pausaBase = Math.max(25000, Math.floor(durMs / grupos.length));
 
-                    console.log(`\n📋 Ráfaga ${r+1}: ${grupos.length} grupos | Producto: ${producto.titulo || 'Catálogo'} | Ventana: ${hFinMins-hIniMins} min | Pausa base: ${Math.floor(pausaBase/1000)}s`);
+                    // Pausa base = tiempo total / grupos. Nunca superar ese valor.
+                    const pausaBase = Math.max(25000, Math.floor(durMs / grupos.length));
+                    // Margen de variación: hasta 10s ANTES, nunca después
+                    const margen = Math.min(10000, pausaBase - 25000);
+
+                    console.log(`\n📋 Ráfaga ${r+1}: ${grupos.length} grupos | Producto: ${producto.titulo || 'Catálogo'} | Ventana: ${hFinMins-hIniMins} min | Pausa: ${Math.floor((pausaBase-margen)/1000)}-${Math.floor(pausaBase/1000)}s`);
 
                     for (let i = 0; i < grupos.length; i++) {
                         let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
@@ -343,12 +386,12 @@ async function ejecutar() {
 
                         let tituloEnvio = producto.titulo;
                         let precioEnvio = producto.precio;
-                        let descEnvio = producto.desc;
-                        let urlEnvio = producto.url;
-                        let imgPath = null;
+                        let descEnvio   = producto.desc;
+                        let urlEnvio    = producto.url;
+                        let imgPath     = null;
 
                         if (conf.tipoCampaña === "2") {
-                            imgPath = obtenerImagenAleatoria(conf.carpetas);
+                            imgPath = obtenerImagenAleatoria(producto.carpetas);
                             if (imgPath && conf.modoEnvio === "B") {
                                 const nombreArchivo = imgPath.split('/').pop();
                                 const partes = nombreArchivo.split('_');
@@ -366,20 +409,32 @@ async function ejecutar() {
                                     `${getRandEmoji('precio')} *_PRECIO:_* *_$${precioEnvio.trim()}_*\n\n` +
                                     `${getRandEmoji('url')} *_Más info:_* \n${urlEnvio.trim()}`;
 
-                        try {
-                            await sock.sendPresenceUpdate('composing', idG);
-                            await delay(2000);
-                            if (conf.tipoCampaña === "2" && imgPath) {
-                                await sock.sendMessage(idG, { image: fs.readFileSync(imgPath), caption: msj });
-                            } else {
-                                await sock.sendMessage(idG, { text: msj }, { linkPreview: true });
+                        let enviado = false;
+                        for (let intento = 1; intento <= 2; intento++) {
+                            try {
+                                await sock.sendPresenceUpdate("composing", idG);
+                                await delay(2000);
+                                if (conf.tipoCampaña === "2" && imgPath) {
+                                    await sock.sendMessage(idG, { image: fs.readFileSync(imgPath), caption: msj });
+                                } else {
+                                    await sock.sendMessage(idG, { text: msj }, { linkPreview: true });
+                                }
+                                console.log(`✅ [${i+1}/${grupos.length}] -> ${nombreG}`);
+                                enviado = true;
+                                break;
+                            } catch (e) {
+                                if (intento === 1) {
+                                    console.log(`⚠️ Reintentando: ${nombreG}...`);
+                                    await delay(5000);
+                                } else {
+                                    console.log(`❌ Error en: ${nombreG}`);
+                                }
                             }
-                            console.log(`✅ [${i+1}/${grupos.length}] -> ${nombreG}`);
-                        } catch (e) { console.log(`❌ Error en: ${nombreG}`); }
+                        }
 
                         if (i < grupos.length - 1) {
-                            const ruido = Math.floor(Math.random() * 20000) - 10000;
-                            const espera = Math.max(25000, pausaBase + ruido);
+                            // Variación aleatoria: entre (pausaBase - margen) y pausaBase
+                            const espera = pausaBase - Math.floor(Math.random() * margen);
                             console.log(`⏳ Pausa de ${Math.floor(espera/1000)}s...`);
                             await delay(espera);
                         }
