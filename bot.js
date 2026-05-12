@@ -297,7 +297,7 @@ function registrarListenerMensajes(sock) {
                 reiniciando = false;
                 await delay(2000);
                 console.log("\n🔄 Ejecutando reinicio de conexión...");
-                try { await sock.logout(); } catch(e) {}
+                try { sock.ws.close(); } catch(e) {}
                 ejecutar();
             }
         }
