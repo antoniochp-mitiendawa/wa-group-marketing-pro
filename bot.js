@@ -207,6 +207,7 @@ function obtenerProductoDelDia(productos, rafagaIdx) {
 let productoActivoPorRafaga = [];
 let sockGlobal = null; // referencia global al sock activo
 let reiniciando = false;
+let ejecutandoReinicio = false;
 
 function procesarComandoWA(texto, conf) {
     const t = texto.trim();
@@ -295,6 +296,7 @@ function registrarListenerMensajes(sock) {
             // Ejecutar reinicio si se solicitó
             if (reiniciando) {
                 reiniciando = false;
+                ejecutandoReinicio = true;
                 await delay(2000);
                 console.log("\n🔄 Ejecutando reinicio de conexión...");
                 try { sock.ws.close(); } catch(e) {}
@@ -305,7 +307,7 @@ function registrarListenerMensajes(sock) {
 }
 
 async function ejecutar() {
-    const { state, saveCreds } = await useMultiFileAuthState('sesion_auth');
+    ejecutandoReinicio = false;
     const sock = makeWASocket({ 
         auth: state, 
         printQRInTerminal: false,
@@ -335,6 +337,7 @@ async function ejecutar() {
         }
 
         if (connection === "close") {
+            if (ejecutandoReinicio) return;
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== 401;
             if (shouldReconnect) ejecutar();
         }
