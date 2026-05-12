@@ -13,49 +13,52 @@ exec("termux-wake-lock");
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const question = (query) => new Promise((resolve) => rl.question(query, resolve));
 
-const BACKUP_PATH = "/storage/emulated/0/MiTiendaWA_backup.json";
-const JID_PATH = "/storage/emulated/0/MiTiendaWA_jid.txt";
+const BACKUP_PATH    = "/storage/emulated/0/MiTiendaWA_backup.json";
+const JID_PATH       = "/storage/emulated/0/MiTiendaWA_jid.txt";
+const BLACKLIST_PATH = "/storage/emulated/0/MiTiendaWA_blacklist.json";
 
-// --- BASE DE DATOS DE EMOJIS ---
+// --- EMOJIS ---
 const dicEmoji = {
-    saludo: ["✨", "🌤️", "🌅", "☕", "🤝", "👋", "🎈", "🍀", "🎐", "☀️", "🌈", "🙌", "⭐", "🌻", "🔋"],
-    titulo: ["📖", "📗", "📘", "📙", "📓", "📒", "📑", "📚", "🔬", "🎓", "🧠", "🧐", "🚀", "💎", "💡"],
-    desc:   ["📋", "📌", "📂", "💾", "🔍", "📍", "📝", "🖋️", "📁", "🗂️", "🎬", "⚙️", "📢", "✅", "⚖️"],
-    precio: ["💰", "🏷️", "💵", "💳", "🎁", "💎", "💸", "🪙", "💹", "🛒", "💲", "🎯", "🔥", "📦", "🔔"],
-    url:    ["🔗", "⬇️", "👉", "📱", "📥", "📲", "⚡", "🏹", "🖱️", "🖥️", "🌐", "📍", "✅", "🔘", "🚩"]
+    saludo: ["✨","🌤️","🌅","☕","🤝","👋","🎈","🍀","🎐","☀️","🌈","🙌","⭐","🌻","🔋"],
+    titulo: ["📖","📗","📘","📙","📓","📒","📑","📚","🔬","🎓","🧠","🧐","🚀","💎","💡"],
+    desc:   ["📋","📌","📂","💾","🔍","📍","📝","🖋️","📁","🗂️","🎬","⚙️","📢","✅","⚖️"],
+    precio: ["💰","🏷️","💵","💳","🎁","💎","💸","🪙","💹","🛒","💲","🎯","🔥","📦","🔔"],
+    url:    ["🔗","⬇️","👉","📱","📥","📲","⚡","🏹","🖱️","🖥️","🌐","📍","✅","🔘","🚩"]
 };
-
 const getRandEmoji = (cat) => dicEmoji[cat][Math.floor(Math.random() * dicEmoji[cat].length)];
 
 // --- BACKUP ---
 function guardarBackup(conf) {
-    try {
-        fs.writeFileSync(BACKUP_PATH, JSON.stringify(conf, null, 2), 'utf8');
-        console.log(`💾 Configuración guardada en backup.`);
-    } catch (e) { console.log("⚠️ No se pudo guardar el backup."); }
+    try { fs.writeFileSync(BACKUP_PATH, JSON.stringify(conf, null, 2), 'utf8'); console.log("💾 Configuración guardada."); }
+    catch (e) { console.log("⚠️ No se pudo guardar el backup."); }
 }
-
 function cargarBackup() {
-    try {
-        if (fs.existsSync(BACKUP_PATH)) return JSON.parse(fs.readFileSync(BACKUP_PATH, 'utf8'));
-    } catch (e) { console.log("⚠️ Error al leer el backup."); }
+    try { if (fs.existsSync(BACKUP_PATH)) return JSON.parse(fs.readFileSync(BACKUP_PATH, 'utf8')); }
+    catch (e) { console.log("⚠️ Error al leer el backup."); }
     return null;
 }
 
 // --- JID AUTORIZADO ---
 let jidAutorizado = null;
-
 function cargarJid() {
-    try {
-        if (fs.existsSync(JID_PATH)) return fs.readFileSync(JID_PATH, 'utf8').trim();
-    } catch (e) {}
+    try { if (fs.existsSync(JID_PATH)) return fs.readFileSync(JID_PATH, 'utf8').trim(); }
+    catch (e) {}
     return null;
 }
-
 function guardarJid(jid) {
-    try {
-        fs.writeFileSync(JID_PATH, jid, 'utf8');
-    } catch (e) {}
+    try { fs.writeFileSync(JID_PATH, jid, 'utf8'); } catch (e) {}
+}
+
+// --- LISTA NEGRA (por ID de grupo) ---
+let blacklist = [];
+function cargarBlacklist() {
+    try { if (fs.existsSync(BLACKLIST_PATH)) return JSON.parse(fs.readFileSync(BLACKLIST_PATH, 'utf8')); }
+    catch (e) {}
+    return [];
+}
+function guardarBlacklist() {
+    try { fs.writeFileSync(BLACKLIST_PATH, JSON.stringify(blacklist, null, 2), 'utf8'); }
+    catch (e) {}
 }
 
 // --- EXTRACCIÓN DE GRUPOS ---
@@ -64,8 +67,7 @@ async function extraerGrupos(sock) {
     try {
         const chats = await sock.groupFetchAllParticipating();
         const listaGrupos = Object.values(chats).map(g => `${g.id} | ${g.subject}`);
-        const rutaDestino = "/storage/emulated/0/grupos_extraidos.txt";
-        fs.writeFileSync(rutaDestino, listaGrupos.join('\n'), 'utf8');
+        fs.writeFileSync("/storage/emulated/0/grupos_extraidos.txt", listaGrupos.join('\n'), 'utf8');
         console.log(`📊 Grupos detectados: ${listaGrupos.length}.`);
     } catch (e) { console.log("⚠️ Error al extraer grupos."); }
 }
@@ -73,30 +75,22 @@ async function extraerGrupos(sock) {
 // --- HORA ---
 function obtenerHoraActualNum() {
     const ahora = new Date();
-    return parseInt(ahora.getHours().toString().padStart(2, '0') + ahora.getMinutes().toString().padStart(2, '0'));
+    return parseInt(ahora.getHours().toString().padStart(2,'0') + ahora.getMinutes().toString().padStart(2,'0'));
 }
-
 function obtenerMinutosActuales() {
     const ahora = new Date();
     return ahora.getHours() * 60 + ahora.getMinutes();
 }
-
 async function esperarInicio(hInicio) {
     const inicioTarget = parseInt(hInicio);
     console.log(`\n⏳ Modo Vigilancia: Esperando a las ${hInicio}.`);
-    while (obtenerHoraActualNum() < inicioTarget) {
-        process.stdout.write(".");
-        await delay(15000);
-    }
+    while (obtenerHoraActualNum() < inicioTarget) { process.stdout.write("."); await delay(15000); }
     console.log(`\n✅ Hora alcanzada. Iniciando envíos...`);
 }
-
 async function esperarHastaMañana(hInicioPrimeraRafaga) {
     console.log(`\n🌙 Jornada diaria finalizada.`);
     console.log(`💤 Reposando hasta mañana a las ${hInicioPrimeraRafaga}...`);
-    while (obtenerHoraActualNum() !== parseInt(hInicioPrimeraRafaga)) {
-        await delay(60000);
-    }
+    while (obtenerHoraActualNum() !== parseInt(hInicioPrimeraRafaga)) { await delay(60000); }
     console.log("\n☀️ ¡Nuevo día! Reiniciando ráfagas...");
 }
 
@@ -104,32 +98,26 @@ async function esperarHastaMañana(hInicioPrimeraRafaga) {
 function obtenerSaludo(nombreG) {
     const hora = new Date().getHours();
     const e = getRandEmoji('saludo');
-    const mañana = ["Buenos días", "Buen día", "Excelente mañana"];
-    const tarde  = ["Buenas tardes", "Buena tarde", "Un placer saludarte"];
-    const noche  = ["Buenas noches", "Linda noche", "Saludos nocturnos"];
+    const mañana = ["Buenos días","Buen día","Excelente mañana"];
+    const tarde  = ["Buenas tardes","Buena tarde","Un placer saludarte"];
+    const noche  = ["Buenas noches","Linda noche","Saludos nocturnos"];
     let saludo = (hora >= 6 && hora < 12) ? mañana : (hora >= 12 && hora < 19) ? tarde : noche;
     return `${e} _${saludo[Math.floor(Math.random() * saludo.length)]} miembros de:_ *_${nombreG}_*`;
 }
 
-// --- POOL DE IMÁGENES SEGURO (SIN BORRADO) ---
+// --- IMÁGENES ---
 let imagenesUsadasEnSesion = [];
-
 function obtenerImagenAleatoria(carpetas) {
     let todasLasFotos = [];
     carpetas.forEach(ruta => {
         if (fs.existsSync(ruta)) {
-            const fotos = fs.readdirSync(ruta)
-                .filter(f => f.match(/\.(jpg|jpeg|png)$/i))
-                .map(f => `${ruta}/${f}`);
+            const fotos = fs.readdirSync(ruta).filter(f => f.match(/\.(jpg|jpeg|png)$/i)).map(f => `${ruta}/${f}`);
             todasLasFotos = todasLasFotos.concat(fotos);
         }
     });
     if (todasLasFotos.length === 0) return null;
     let disponibles = todasLasFotos.filter(f => !imagenesUsadasEnSesion.includes(f));
-    if (disponibles.length === 0) {
-        imagenesUsadasEnSesion = [];
-        disponibles = todasLasFotos;
-    }
+    if (disponibles.length === 0) { imagenesUsadasEnSesion = []; disponibles = todasLasFotos; }
     const seleccionada = disponibles[Math.floor(Math.random() * disponibles.length)];
     imagenesUsadasEnSesion.push(seleccionada);
     return seleccionada;
@@ -142,61 +130,41 @@ async function iniciarCuestionario() {
     const tipoCampaña = await question("Selecciona: ");
 
     let modoEnvio = "GLOBAL";
-    let productos = [];
-
     if (tipoCampaña === "2") {
         console.log("\nA. Mensaje Global | B. Catálogo Individual");
         modoEnvio = (await question("Selecciona: ")).toUpperCase();
     }
 
+    let productos = [];
     if (tipoCampaña === "1" || modoEnvio === "A") {
-        // --- MENSAJE GLOBAL: capturar productos con sus carpetas ---
         const numProductos = parseInt(await question("\n¿Cuántos productos globales vas a configurar? "));
         for (let p = 0; p < numProductos; p++) {
             console.log(`\n--- Producto ${p+1} ---`);
             const titulo = await question("   Título: ");
             console.log("   Descripción (FIN para terminar):");
             let desc = [];
-            while (true) {
-                const l = await question("");
-                if (l.trim().toUpperCase() === 'FIN') break;
-                desc.push(l.trim());
-            }
+            while (true) { const l = await question(""); if (l.trim().toUpperCase() === 'FIN') break; desc.push(l.trim()); }
             const precio = await question("   Precio: ");
             const url = await question("   URL: ");
-
-            // Carpeta de imágenes por producto (solo si es imagen+texto)
             let carpetas = [];
             if (tipoCampaña === "2") {
                 const numCarp = parseInt(await question("   ¿Cuántas carpetas de imágenes? "));
-                for (let c = 0; c < numCarp; c++) {
-                    carpetas.push((await question(`   Ruta carpeta ${c+1}: `)).trim());
-                }
+                for (let c = 0; c < numCarp; c++) carpetas.push((await question(`   Ruta carpeta ${c+1}: `)).trim());
             }
-            productos.push({ titulo, desc, precio, url, carpetas });
+            productos.push({ titulo, desc, precio, url, carpetas, activo: true });
         }
     } else {
-        // --- CATÁLOGO INDIVIDUAL ---
         console.log("\nDescripción extra (FIN para terminar):");
         let desc = [];
-        while (true) {
-            const l = await question("");
-            if (l.trim().toUpperCase() === 'FIN') break;
-            desc.push(l.trim());
-        }
+        while (true) { const l = await question(""); if (l.trim().toUpperCase() === 'FIN') break; desc.push(l.trim()); }
         const url = await question("\nURL: ");
         const numCarp = parseInt(await question("¿Cuántas carpetas de imágenes? "));
         let carpetas = [];
-        for (let c = 0; c < numCarp; c++) {
-            carpetas.push((await question(`   Ruta carpeta ${c+1}: `)).trim());
-        }
-        productos.push({ titulo: "", desc, precio: "", url, carpetas });
+        for (let c = 0; c < numCarp; c++) carpetas.push((await question(`   Ruta carpeta ${c+1}: `)).trim());
+        productos.push({ titulo: "", desc, precio: "", url, carpetas, activo: true });
     }
 
-    // --- GRUPOS: solo se pide una vez ---
     const rutaGrupos = (await question("\nRuta del archivo grupos.txt: ")).trim();
-
-    // --- RÁFAGAS ---
     const numRafagas = parseInt(await question("\n¿Cuántas ráfagas diarias? "));
     let ráfagas = [];
     for (let i = 0; i < numRafagas; i++) {
@@ -205,16 +173,15 @@ async function iniciarCuestionario() {
         const hFin = await question(`   Hora fin (HHMM):   `);
         let productoIdx = 0;
         if (productos.length > 1) {
-            console.log(`   Productos: ${productos.map((p, i) => `${i+1}. ${p.titulo}`).join(' | ')}`);
+            console.log(`   Productos: ${productos.map((p,i) => `${i+1}. ${p.titulo}`).join(' | ')}`);
             productoIdx = parseInt(await question(`   ¿Qué producto usa esta ráfaga? (número): `)) - 1;
         }
         ráfagas.push({ hIni, hFin, productoIdx });
     }
-
     return { tipoCampaña, modoEnvio, productos, rutaGrupos, ráfagas };
 }
 
-// --- RÁFAGA INICIAL SEGÚN HORA ACTUAL ---
+// --- RÁFAGA INICIAL ---
 function obtenerRafagaInicial(ráfagas) {
     const minutosActuales = obtenerMinutosActuales();
     for (let i = 0; i < ráfagas.length; i++) {
@@ -228,24 +195,69 @@ function obtenerRafagaInicial(ráfagas) {
     return -1;
 }
 
+// --- ROTACIÓN AUTOMÁTICA DE PRODUCTOS POR DÍA ---
+function obtenerProductoDelDia(productos, rafagaIdx) {
+    const productosActivos = productos.map((p, i) => ({ ...p, idx: i })).filter(p => p.activo !== false);
+    if (productosActivos.length === 0) return 0;
+    const diaDelAño = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    return productosActivos[(diaDelAño + rafagaIdx) % productosActivos.length].idx;
+}
+
 // --- CONTROL POR WHATSAPP ---
 let productoActivoPorRafaga = [];
 
 function procesarComandoWA(texto, conf) {
-    const match = texto.match(/r[aá]faga\s*(\d+)\s*producto\s*(\d+)/i);
-    if (match) {
-        const r = parseInt(match[1]) - 1;
-        const p = parseInt(match[2]) - 1;
-        if (r >= 0 && r < conf.ráfagas.length && p >= 0 && p < conf.productos.length) {
-            productoActivoPorRafaga[r] = p;
-            return `✅ Ráfaga ${r+1} usará producto ${p+1}: ${conf.productos[p].titulo}`;
-        }
-        return `❌ Número de ráfaga o producto inválido.`;
+    const t = texto.trim();
+
+    // rafaga X producto Y
+    const mRafaga = t.match(/^r[aá]faga\s+(\d+)\s+producto\s+(\d+)$/i);
+    if (mRafaga) {
+        const r = parseInt(mRafaga[1]) - 1;
+        const p = parseInt(mRafaga[2]) - 1;
+        if (r < 0 || r >= conf.ráfagas.length) return `❌ Ráfaga ${r+1} no existe.`;
+        if (p < 0 || p >= conf.productos.length) return `❌ Producto ${p+1} no existe.`;
+        productoActivoPorRafaga[r] = p;
+        return `✅ Ráfaga ${r+1} usará producto ${p+1}: ${conf.productos[p].titulo}`;
     }
+
+    // producto X precio/titulo/descripcion/url/carpeta/activar/desactivar VALOR
+    const mProducto = t.match(/^producto\s+(\d+)\s+(\w+)(?:\s+(.+))?$/i);
+    if (mProducto) {
+        const p = parseInt(mProducto[1]) - 1;
+        const campo = mProducto[2].toLowerCase();
+        const valor = mProducto[3] ? mProducto[3].trim() : "";
+        if (p < 0 || p >= conf.productos.length) return `❌ Producto ${p+1} no existe.`;
+
+        if (campo === 'activar')      { conf.productos[p].activo = true;  guardarBackup(conf); return `✅ Producto ${p+1} activado.`; }
+        if (campo === 'desactivar')   { conf.productos[p].activo = false; guardarBackup(conf); return `✅ Producto ${p+1} desactivado.`; }
+        if (!valor) return `❌ Falta el valor para ${campo}.`;
+        if (campo === 'precio')       { conf.productos[p].precio = valor;   guardarBackup(conf); return `✅ Producto ${p+1} precio actualizado: $${valor}`; }
+        if (campo === 'titulo')       { conf.productos[p].titulo = valor;   guardarBackup(conf); return `✅ Producto ${p+1} título actualizado: ${valor}`; }
+        if (campo === 'descripcion')  { conf.productos[p].desc = [valor];   guardarBackup(conf); return `✅ Producto ${p+1} descripción actualizada.`; }
+        if (campo === 'url')          { conf.productos[p].url = valor;      guardarBackup(conf); return `✅ Producto ${p+1} URL actualizada: ${valor}`; }
+        if (campo === 'carpeta')      { conf.productos[p].carpetas = [valor]; guardarBackup(conf); return `✅ Producto ${p+1} carpeta actualizada: ${valor}`; }
+        return `❌ Campo desconocido: ${campo}`;
+    }
+
+    // bloquear/desbloquear ID@g.us
+    const mBloquear = t.match(/^(bloquear|desbloquear)\s+(\S+@g\.us)$/i);
+    if (mBloquear) {
+        const accion = mBloquear[1].toLowerCase();
+        const idGrupo = mBloquear[2];
+        if (accion === 'bloquear') {
+            if (!blacklist.includes(idGrupo)) { blacklist.push(idGrupo); guardarBlacklist(); }
+            return `🚫 Grupo bloqueado: ${idGrupo}`;
+        } else {
+            blacklist = blacklist.filter(id => id !== idGrupo);
+            guardarBlacklist();
+            return `✅ Grupo desbloqueado: ${idGrupo}`;
+        }
+    }
+
     return null;
 }
 
-// --- FLAG CAMPAÑA ACTIVA ---
+// --- FLAG CAMPAÑA ---
 let campañaActiva = false;
 
 async function ejecutar() {
@@ -259,29 +271,27 @@ async function ejecutar() {
 
     sock.ev.on("creds.update", saveCreds);
 
-    // --- ESCUCHAR COMANDOS POR WHATSAPP ---
+    // --- COMANDOS POR WHATSAPP ---
     sock.ev.on("messages.upsert", async ({ messages }) => {
         const msg = messages[0];
-        if (!msg || !msg.message || msg.key.fromMe === false) return;
+        if (!msg || !msg.message) return;
+        if (!msg.key.fromMe) return;
 
         const remitente = msg.key.remoteJid;
-        const texto = msg.message.conversation || 
-                      msg.message.extendedTextMessage?.text || "";
+        const texto = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
         if (!texto) return;
 
-        // Registrar JID autorizado la primera vez
         if (!jidAutorizado) {
             jidAutorizado = remitente;
             guardarJid(remitente);
             console.log(`\n🔐 JID autorizado registrado: ${remitente}`);
         }
-
         if (remitente !== jidAutorizado) return;
 
-        console.log(`\n📩 Comando recibido: "${texto}"`);
+        if (!sock._conf) return;
         const respuesta = procesarComandoWA(texto, sock._conf);
         if (respuesta) {
-            console.log(`📤 Respondiendo: ${respuesta}`);
+            console.log(`\n📩 Comando: "${texto}"\n📤 Respuesta: ${respuesta}`);
             await sock.sendMessage(remitente, { text: respuesta });
         }
     });
@@ -298,9 +308,7 @@ async function ejecutar() {
                 console.log("\n======================================");
                 console.log(`✅ TU CÓDIGO DE EMPAREJAMIENTO ES: ${code}`);
                 console.log("======================================\n");
-            } catch (err) {
-                console.log("Error al solicitar código, reintentando...", err);
-            }
+            } catch (err) { console.log("Error al solicitar código:", err); }
         }
 
         if (connection === "close") {
@@ -312,19 +320,16 @@ async function ejecutar() {
             console.log("\n✅ WhatsApp Conectado.");
             await extraerGrupos(sock);
 
-            // Cargar JID autorizado si existe
             if (!jidAutorizado) jidAutorizado = cargarJid();
-            if (jidAutorizado) console.log(`🔐 JID autorizado cargado: ${jidAutorizado}`);
+            if (jidAutorizado) console.log(`🔐 JID autorizado: ${jidAutorizado}`);
+            blacklist = cargarBlacklist();
+            if (blacklist.length > 0) console.log(`🚫 Lista negra cargada: ${blacklist.length} grupos`);
 
-            if (campañaActiva) {
-                console.log("🔄 Reconexión exitosa. Continuando campaña...");
-                return;
-            }
+            if (campañaActiva) { console.log("🔄 Reconexión exitosa. Continuando campaña..."); return; }
 
             campañaActiva = true;
             let conf;
 
-            // --- BACKUP ---
             const backup = cargarBackup();
             if (backup) {
                 console.log("\n╔══════════════════════════════════════╗");
@@ -334,13 +339,9 @@ async function ejecutar() {
                 console.log("║  2. Capturar nueva configuración      ║");
                 console.log("╚══════════════════════════════════════╝");
                 const opcion = await question("Selecciona (1 o 2): ");
-                if (opcion.trim() === "1") {
-                    conf = backup;
-                    console.log("✅ Configuración cargada desde backup.");
-                } else {
-                    conf = await iniciarCuestionario();
-                    guardarBackup(conf);
-                }
+                conf = (opcion.trim() === "1") ? backup : await iniciarCuestionario();
+                if (opcion.trim() !== "1") guardarBackup(conf);
+                else console.log("✅ Configuración cargada desde backup.");
             } else {
                 conf = await iniciarCuestionario();
                 guardarBackup(conf);
@@ -351,10 +352,7 @@ async function ejecutar() {
 
             while (true) {
                 let rafagaInicial = obtenerRafagaInicial(conf.ráfagas);
-                if (rafagaInicial === -1) {
-                    await esperarHastaMañana(conf.ráfagas[0].hIni);
-                    rafagaInicial = 0;
-                }
+                if (rafagaInicial === -1) { await esperarHastaMañana(conf.ráfagas[0].hIni); rafagaInicial = 0; }
 
                 for (let r = rafagaInicial; r < conf.ráfagas.length; r++) {
                     const ventana = conf.ráfagas[r];
@@ -362,23 +360,26 @@ async function ejecutar() {
 
                     imagenesUsadasEnSesion = [];
 
-                    // Grupos frescos en cada ráfaga
+                    // Grupos frescos, filtrando lista negra
                     let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
+                    grupos = grupos.filter(l => !blacklist.some(id => l.includes(id)));
                     grupos = grupos.sort(() => Math.random() - 0.5);
 
-                    const pIdx = productoActivoPorRafaga[r] || 0;
+                    // Producto: manual si fue asignado, sino rotación automática por día
+                    const pIdx = (productoActivoPorRafaga[r] !== undefined)
+                        ? productoActivoPorRafaga[r]
+                        : obtenerProductoDelDia(conf.productos, r);
                     const producto = conf.productos[pIdx];
 
                     const hIniMins = parseInt(ventana.hIni.slice(0,2)) * 60 + parseInt(ventana.hIni.slice(2));
                     const hFinMins = parseInt(ventana.hFin.slice(0,2)) * 60 + parseInt(ventana.hFin.slice(2));
-                    const durMs = (hFinMins - hIniMins) * 60000;
-
-                    // Pausa base = tiempo total / grupos. Nunca superar ese valor.
+                    const durMs    = (hFinMins - hIniMins) * 60000;
                     const pausaBase = Math.max(25000, Math.floor(durMs / grupos.length));
-                    // Margen de variación: hasta 10s ANTES, nunca después
-                    const margen = Math.min(10000, pausaBase - 25000);
+                    const margen    = Math.min(10000, pausaBase - 25000);
 
                     console.log(`\n📋 Ráfaga ${r+1}: ${grupos.length} grupos | Producto: ${producto.titulo || 'Catálogo'} | Ventana: ${hFinMins-hIniMins} min | Pausa: ${Math.floor((pausaBase-margen)/1000)}-${Math.floor(pausaBase/1000)}s`);
+
+                    let enviados = 0, fallidos = 0;
 
                     for (let i = 0; i < grupos.length; i++) {
                         let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
@@ -412,7 +413,7 @@ async function ejecutar() {
                         let enviado = false;
                         for (let intento = 1; intento <= 2; intento++) {
                             try {
-                                await sock.sendPresenceUpdate("composing", idG);
+                                await sock.sendPresenceUpdate('composing', idG);
                                 await delay(2000);
                                 if (conf.tipoCampaña === "2" && imgPath) {
                                     await sock.sendMessage(idG, { image: fs.readFileSync(imgPath), caption: msj });
@@ -421,24 +422,36 @@ async function ejecutar() {
                                 }
                                 console.log(`✅ [${i+1}/${grupos.length}] -> ${nombreG}`);
                                 enviado = true;
+                                enviados++;
                                 break;
                             } catch (e) {
-                                if (intento === 1) {
-                                    console.log(`⚠️ Reintentando: ${nombreG}...`);
-                                    await delay(5000);
-                                } else {
-                                    console.log(`❌ Error en: ${nombreG}`);
-                                }
+                                if (intento === 1) { console.log(`⚠️ Reintentando: ${nombreG}...`); await delay(5000); }
+                                else { console.log(`❌ Error en: ${nombreG}`); fallidos++; }
                             }
                         }
 
                         if (i < grupos.length - 1) {
-                            // Variación aleatoria: entre (pausaBase - margen) y pausaBase
                             const espera = pausaBase - Math.floor(Math.random() * margen);
                             console.log(`⏳ Pausa de ${Math.floor(espera/1000)}s...`);
                             await delay(espera);
                         }
                     }
+
+                    // --- REPORTE DE CAMPAÑA ---
+                    const horaFin = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                    const reporte = `📊 *Reporte Ráfaga ${r+1}*\n\n` +
+                                    `🕐 Finalizada: ${horaFin}\n` +
+                                    `📦 Producto: ${producto.titulo || 'Catálogo'}\n` +
+                                    `✅ Enviados: ${enviados}\n` +
+                                    `❌ Fallidos: ${fallidos}\n` +
+                                    `📋 Total: ${grupos.length}\n` +
+                                    `🚫 En lista negra: ${blacklist.length} grupos`;
+                    console.log(`\n${reporte}`);
+                    if (jidAutorizado) {
+                        try { await sock.sendMessage(jidAutorizado, { text: reporte }); }
+                        catch (e) { console.log("⚠️ No se pudo enviar el reporte."); }
+                    }
+
                     console.log(`\n✅ Ráfaga ${r+1} finalizada.`);
                 }
                 await esperarHastaMañana(conf.ráfagas[0].hIni);
