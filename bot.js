@@ -38,7 +38,7 @@ function cargarBackup() {
     return null;
 }
 
-// --- JID AUTORIZADO ---
+// --- JID ---
 let jidAutorizado = null;
 function cargarJid() {
     try { if (fs.existsSync(JID_PATH)) return fs.readFileSync(JID_PATH, 'utf8').trim(); }
@@ -49,7 +49,7 @@ function guardarJid(jid) {
     try { fs.writeFileSync(JID_PATH, jid, 'utf8'); } catch (e) {}
 }
 
-// --- LISTA NEGRA (por ID de grupo) ---
+// --- LISTA NEGRA ---
 let blacklist = [];
 function cargarBlacklist() {
     try { if (fs.existsSync(BLACKLIST_PATH)) return JSON.parse(fs.readFileSync(BLACKLIST_PATH, 'utf8')); }
@@ -61,7 +61,7 @@ function guardarBlacklist() {
     catch (e) {}
 }
 
-// --- EXTRACCIÓN DE GRUPOS ---
+// --- GRUPOS ---
 async function extraerGrupos(sock) {
     console.log("\n🔍 Actualizando lista de grupos...");
     try {
@@ -195,7 +195,7 @@ function obtenerRafagaInicial(ráfagas) {
     return -1;
 }
 
-// --- ROTACIÓN AUTOMÁTICA DE PRODUCTOS POR DÍA ---
+// --- ROTACIÓN AUTOMÁTICA ---
 function obtenerProductoDelDia(productos, rafagaIdx) {
     const productosActivos = productos.map((p, i) => ({ ...p, idx: i })).filter(p => p.activo !== false);
     if (productosActivos.length === 0) return 0;
@@ -203,11 +203,19 @@ function obtenerProductoDelDia(productos, rafagaIdx) {
     return productosActivos[(diaDelAño + rafagaIdx) % productosActivos.length].idx;
 }
 
-// --- CONTROL POR WHATSAPP ---
+// --- COMANDOS POR WHATSAPP ---
 let productoActivoPorRafaga = [];
+let sockGlobal = null; // referencia global al sock activo
+let reiniciando = false;
 
 function procesarComandoWA(texto, conf) {
     const t = texto.trim();
+
+    // reiniciar
+    if (/^reiniciar$/i.test(t)) {
+        reiniciando = true;
+        return "🔄 Reiniciando conexión...";
+    }
 
     // rafaga X producto Y
     const mRafaga = t.match(/^r[aá]faga\s+(\d+)\s+producto\s+(\d+)$/i);
@@ -220,22 +228,21 @@ function procesarComandoWA(texto, conf) {
         return `✅ Ráfaga ${r+1} usará producto ${p+1}: ${conf.productos[p].titulo}`;
     }
 
-    // producto X precio/titulo/descripcion/url/carpeta/activar/desactivar VALOR
+    // producto X campo valor
     const mProducto = t.match(/^producto\s+(\d+)\s+(\w+)(?:\s+(.+))?$/i);
     if (mProducto) {
         const p = parseInt(mProducto[1]) - 1;
         const campo = mProducto[2].toLowerCase();
         const valor = mProducto[3] ? mProducto[3].trim() : "";
         if (p < 0 || p >= conf.productos.length) return `❌ Producto ${p+1} no existe.`;
-
-        if (campo === 'activar')      { conf.productos[p].activo = true;  guardarBackup(conf); return `✅ Producto ${p+1} activado.`; }
-        if (campo === 'desactivar')   { conf.productos[p].activo = false; guardarBackup(conf); return `✅ Producto ${p+1} desactivado.`; }
+        if (campo === 'activar')     { conf.productos[p].activo = true;    guardarBackup(conf); return `✅ Producto ${p+1} activado.`; }
+        if (campo === 'desactivar')  { conf.productos[p].activo = false;   guardarBackup(conf); return `✅ Producto ${p+1} desactivado.`; }
         if (!valor) return `❌ Falta el valor para ${campo}.`;
-        if (campo === 'precio')       { conf.productos[p].precio = valor;   guardarBackup(conf); return `✅ Producto ${p+1} precio actualizado: $${valor}`; }
-        if (campo === 'titulo')       { conf.productos[p].titulo = valor;   guardarBackup(conf); return `✅ Producto ${p+1} título actualizado: ${valor}`; }
-        if (campo === 'descripcion')  { conf.productos[p].desc = [valor];   guardarBackup(conf); return `✅ Producto ${p+1} descripción actualizada.`; }
-        if (campo === 'url')          { conf.productos[p].url = valor;      guardarBackup(conf); return `✅ Producto ${p+1} URL actualizada: ${valor}`; }
-        if (campo === 'carpeta')      { conf.productos[p].carpetas = [valor]; guardarBackup(conf); return `✅ Producto ${p+1} carpeta actualizada: ${valor}`; }
+        if (campo === 'precio')      { conf.productos[p].precio = valor;    guardarBackup(conf); return `✅ Precio actualizado: $${valor}`; }
+        if (campo === 'titulo')      { conf.productos[p].titulo = valor;    guardarBackup(conf); return `✅ Título actualizado: ${valor}`; }
+        if (campo === 'descripcion') { conf.productos[p].desc = [valor];    guardarBackup(conf); return `✅ Descripción actualizada.`; }
+        if (campo === 'url')         { conf.productos[p].url = valor;       guardarBackup(conf); return `✅ URL actualizada: ${valor}`; }
+        if (campo === 'carpeta')     { conf.productos[p].carpetas = [valor]; guardarBackup(conf); return `✅ Carpeta actualizada: ${valor}`; }
         return `❌ Campo desconocido: ${campo}`;
     }
 
@@ -259,19 +266,10 @@ function procesarComandoWA(texto, conf) {
 
 // --- FLAG CAMPAÑA ---
 let campañaActiva = false;
+let confGlobal = null;
 
-async function ejecutar() {
-    const { state, saveCreds } = await useMultiFileAuthState('sesion_auth');
-    const sock = makeWASocket({ 
-        auth: state, 
-        printQRInTerminal: false,
-        logger: pino({ level: "silent" }), 
-        browser: ["Ubuntu", "Chrome", "20.0.04"] 
-    });
-
-    sock.ev.on("creds.update", saveCreds);
-
-    // --- COMANDOS POR WHATSAPP ---
+// --- REGISTRAR LISTENER DE MENSAJES EN SOCK ACTIVO ---
+function registrarListenerMensajes(sock) {
     sock.ev.on("messages.upsert", async ({ messages }) => {
         const msg = messages[0];
         if (!msg || !msg.message) return;
@@ -287,14 +285,39 @@ async function ejecutar() {
             console.log(`\n🔐 JID autorizado registrado: ${remitente}`);
         }
         if (remitente !== jidAutorizado) return;
+        if (!confGlobal) return;
 
-        if (!sock._conf) return;
-        const respuesta = procesarComandoWA(texto, sock._conf);
+        const respuesta = procesarComandoWA(texto, confGlobal);
         if (respuesta) {
             console.log(`\n📩 Comando: "${texto}"\n📤 Respuesta: ${respuesta}`);
-            await sock.sendMessage(remitente, { text: respuesta });
+            try { await sock.sendMessage(remitente, { text: respuesta }); } catch(e) {}
+
+            // Ejecutar reinicio si se solicitó
+            if (reiniciando) {
+                reiniciando = false;
+                await delay(2000);
+                console.log("\n🔄 Ejecutando reinicio de conexión...");
+                try { await sock.logout(); } catch(e) {}
+                ejecutar();
+            }
         }
     });
+}
+
+async function ejecutar() {
+    const { state, saveCreds } = await useMultiFileAuthState('sesion_auth');
+    const sock = makeWASocket({ 
+        auth: state, 
+        printQRInTerminal: false,
+        logger: pino({ level: "silent" }), 
+        browser: ["Ubuntu", "Chrome", "20.0.04"] 
+    });
+
+    sockGlobal = sock;
+    sock.ev.on("creds.update", saveCreds);
+
+    // Registrar listener de mensajes en esta instancia
+    registrarListenerMensajes(sock);
 
     sock.ev.on("connection.update", async (u) => {
         const { connection, lastDisconnect } = u;
@@ -323,7 +346,7 @@ async function ejecutar() {
             if (!jidAutorizado) jidAutorizado = cargarJid();
             if (jidAutorizado) console.log(`🔐 JID autorizado: ${jidAutorizado}`);
             blacklist = cargarBlacklist();
-            if (blacklist.length > 0) console.log(`🚫 Lista negra cargada: ${blacklist.length} grupos`);
+            if (blacklist.length > 0) console.log(`🚫 Lista negra: ${blacklist.length} grupos`);
 
             if (campañaActiva) { console.log("🔄 Reconexión exitosa. Continuando campaña..."); return; }
 
@@ -347,8 +370,8 @@ async function ejecutar() {
                 guardarBackup(conf);
             }
 
+            confGlobal = conf;
             productoActivoPorRafaga = conf.ráfagas.map(r => r.productoIdx || 0);
-            sock._conf = conf;
 
             while (true) {
                 let rafagaInicial = obtenerRafagaInicial(conf.ráfagas);
@@ -359,13 +382,10 @@ async function ejecutar() {
                     await esperarInicio(ventana.hIni);
 
                     imagenesUsadasEnSesion = [];
-
-                    // Grupos frescos, filtrando lista negra
                     let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
                     grupos = grupos.filter(l => !blacklist.some(id => l.includes(id)));
                     grupos = grupos.sort(() => Math.random() - 0.5);
 
-                    // Producto: manual si fue asignado, sino rotación automática por día
                     const pIdx = (productoActivoPorRafaga[r] !== undefined)
                         ? productoActivoPorRafaga[r]
                         : obtenerProductoDelDia(conf.productos, r);
@@ -413,12 +433,12 @@ async function ejecutar() {
                         let enviado = false;
                         for (let intento = 1; intento <= 2; intento++) {
                             try {
-                                await sock.sendPresenceUpdate('composing', idG);
+                                await sockGlobal.sendPresenceUpdate('composing', idG);
                                 await delay(2000);
                                 if (conf.tipoCampaña === "2" && imgPath) {
-                                    await sock.sendMessage(idG, { image: fs.readFileSync(imgPath), caption: msj });
+                                    await sockGlobal.sendMessage(idG, { image: fs.readFileSync(imgPath), caption: msj });
                                 } else {
-                                    await sock.sendMessage(idG, { text: msj }, { linkPreview: true });
+                                    await sockGlobal.sendMessage(idG, { text: msj }, { linkPreview: true });
                                 }
                                 console.log(`✅ [${i+1}/${grupos.length}] -> ${nombreG}`);
                                 enviado = true;
@@ -437,7 +457,7 @@ async function ejecutar() {
                         }
                     }
 
-                    // --- REPORTE DE CAMPAÑA ---
+                    // --- REPORTE ---
                     const horaFin = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
                     const reporte = `📊 *Reporte Ráfaga ${r+1}*\n\n` +
                                     `🕐 Finalizada: ${horaFin}\n` +
@@ -448,10 +468,9 @@ async function ejecutar() {
                                     `🚫 En lista negra: ${blacklist.length} grupos`;
                     console.log(`\n${reporte}`);
                     if (jidAutorizado) {
-                        try { await sock.sendMessage(jidAutorizado, { text: reporte }); }
+                        try { await sockGlobal.sendMessage(jidAutorizado, { text: reporte }); }
                         catch (e) { console.log("⚠️ No se pudo enviar el reporte."); }
                     }
-
                     console.log(`\n✅ Ráfaga ${r+1} finalizada.`);
                 }
                 await esperarHastaMañana(conf.ráfagas[0].hIni);
