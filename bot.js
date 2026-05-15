@@ -17,7 +17,6 @@ const BACKUP_PATH    = "/storage/emulated/0/MiTiendaWA_backup.json";
 const JID_PATH       = "/storage/emulated/0/MiTiendaWA_jid.txt";
 const BLACKLIST_PATH = "/storage/emulated/0/MiTiendaWA_blacklist.json";
 
-// --- MENSAJES DE ESPERA ---
 const mensajesEspera = [
     "⏳ Sistema activo. Esperando instrucciones.",
     "🔋 Todo en línea. Listo para siguiente ráfaga.",
@@ -51,7 +50,6 @@ const mensajesEspera = [
     "🏹 En posición. Listo para siguiente ráfaga."
 ];
 
-// --- EMOJIS ---
 const dicEmoji = {
     saludo: ["✨","🌤️","🌅","☕","🤝","👋","🎈","🍀","🎐","☀️","🌈","🙌","⭐","🌻","🔋"],
     titulo: ["📖","📗","📘","📙","📓","📒","📑","📚","🔬","🎓","🧠","🧐","🚀","💎","💡"],
@@ -61,7 +59,6 @@ const dicEmoji = {
 };
 const getRandEmoji = (cat) => dicEmoji[cat][Math.floor(Math.random() * dicEmoji[cat].length)];
 
-// --- BACKUP ---
 function guardarBackup(conf) {
     try { fs.writeFileSync(BACKUP_PATH, JSON.stringify(conf, null, 2), 'utf8'); console.log("💾 Configuración guardada."); }
     catch (e) { console.log("⚠️ No se pudo guardar el backup."); }
@@ -72,7 +69,6 @@ function cargarBackup() {
     return null;
 }
 
-// --- JID ---
 let jidAutorizado = null;
 function cargarJid() {
     try { if (fs.existsSync(JID_PATH)) return fs.readFileSync(JID_PATH, 'utf8').trim(); }
@@ -83,7 +79,6 @@ function guardarJid(jid) {
     try { fs.writeFileSync(JID_PATH, jid, 'utf8'); } catch (e) {}
 }
 
-// --- LISTA NEGRA ---
 let blacklist = [];
 function cargarBlacklist() {
     try { if (fs.existsSync(BLACKLIST_PATH)) return JSON.parse(fs.readFileSync(BLACKLIST_PATH, 'utf8')); }
@@ -95,7 +90,6 @@ function guardarBlacklist() {
     catch (e) {}
 }
 
-// --- GRUPOS ---
 async function extraerGrupos(sock) {
     console.log("\n🔍 Actualizando lista de grupos...");
     try {
@@ -106,7 +100,6 @@ async function extraerGrupos(sock) {
     } catch (e) { console.log("⚠️ Error al extraer grupos."); }
 }
 
-// --- SALUDO ---
 function obtenerSaludo(nombreG) {
     const hora = new Date().getHours();
     const e = getRandEmoji('saludo');
@@ -117,7 +110,6 @@ function obtenerSaludo(nombreG) {
     return `${e} _${saludo[Math.floor(Math.random() * saludo.length)]} miembros de:_ *_${nombreG}_*`;
 }
 
-// --- IMÁGENES ---
 let imagenesUsadasEnSesion = [];
 function obtenerImagenAleatoria(carpetas) {
     let todasLasFotos = [];
@@ -135,7 +127,6 @@ function obtenerImagenAleatoria(carpetas) {
     return seleccionada;
 }
 
-// --- CUESTIONARIO ---
 async function iniciarCuestionario() {
     console.log("\n=== WA GROUP MARKETING PRO - MI TIENDA WA ===\n");
     console.log("1. Solo Texto | 2. Imagen + Texto");
@@ -192,7 +183,6 @@ async function iniciarCuestionario() {
     return { tipoCampaña, modoEnvio, productos, rutaGrupos, ráfagas };
 }
 
-// --- ROTACIÓN AUTOMÁTICA ---
 function obtenerProductoDelDia(productos, rafagaIdx) {
     const productosActivos = productos.map((p, i) => ({ ...p, idx: i })).filter(p => p.activo !== false);
     if (productosActivos.length === 0) return 0;
@@ -200,7 +190,6 @@ function obtenerProductoDelDia(productos, rafagaIdx) {
     return productosActivos[(diaDelAño + rafagaIdx) % productosActivos.length].idx;
 }
 
-// --- GLOBALS ---
 let sockGlobal = null;
 let confGlobal = null;
 let campañaActiva = false;
@@ -211,7 +200,6 @@ let ejecutandoReinicio = false;
 let mensajeEsperaIdx = Math.floor(Math.random() * mensajesEspera.length);
 let keepAliveInterval = null;
 
-// --- KEEP ALIVE ---
 function iniciarKeepAlive(sock) {
     if (keepAliveInterval) clearInterval(keepAliveInterval);
     keepAliveInterval = setInterval(async () => {
@@ -223,7 +211,6 @@ function iniciarKeepAlive(sock) {
     }, (10 + Math.floor(Math.random() * 6)) * 60000);
 }
 
-// --- EJECUTAR RÁFAGA ---
 async function ejecutarRafaga(r, conf) {
     rafagaEnCurso = true;
     cancelarRafagaActual = false;
@@ -237,7 +224,6 @@ async function ejecutarRafaga(r, conf) {
     const pIdx = ventana.productoIdx !== undefined ? ventana.productoIdx : obtenerProductoDelDia(conf.productos, r);
     const producto = conf.productos[pIdx];
 
-    // Corrección matemática: descontar overhead por grupo
     const overheadTotal = grupos.length * 5000;
     const durMs = (ventana.duracion * 60000) - overheadTotal;
     const pausaBase = Math.max(25000, Math.floor(durMs / Math.max(grupos.length - 1, 1)));
@@ -250,10 +236,7 @@ async function ejecutarRafaga(r, conf) {
     let enviados = 0, fallidos = 0;
 
     for (let i = 0; i < grupos.length; i++) {
-        if (cancelarRafagaActual) {
-            console.log(`\n⛔ Ráfaga ${r+1} cancelada.`);
-            break;
-        }
+        if (cancelarRafagaActual) { console.log(`\n⛔ Ráfaga ${r+1} cancelada.`); break; }
 
         let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
         if (!idG.includes('@g.us')) idG += '@g.us';
@@ -323,7 +306,6 @@ async function ejecutarRafaga(r, conf) {
     cancelarRafagaActual = false;
 }
 
-// --- COMANDOS ---
 async function procesarComandoWA(texto, conf) {
     const t = texto.trim();
 
@@ -382,6 +364,15 @@ async function procesarComandoWA(texto, conf) {
         if (campo === 'carpeta')     { conf.productos[p].carpetas = [valor]; guardarBackup(conf); return `✅ Carpeta actualizada: ${valor}`; }
     }
 
+    const mRutaGrupos = t.match(/^grupos\s+ruta\s+(.+)$/i);
+    if (mRutaGrupos) {
+        const nuevaRuta = mRutaGrupos[1].trim();
+        if (!fs.existsSync(nuevaRuta)) return `❌ Ruta no encontrada: ${nuevaRuta}`;
+        conf.rutaGrupos = nuevaRuta;
+        guardarBackup(conf);
+        return `✅ Ruta de grupos actualizada: ${nuevaRuta}`;
+    }
+
     const mBloquear = t.match(/^(bloquear|desbloquear)\s+(\S+@g\.us)$/i);
     if (mBloquear) {
         const accion = mBloquear[1].toLowerCase();
@@ -394,19 +385,11 @@ async function procesarComandoWA(texto, conf) {
             guardarBlacklist();
             return `✅ Grupo desbloqueado: ${idGrupo}`;
         }
-    const mRutaGrupos = t.match(/^grupos\s+ruta\s+(.+)$/i);
-    if (mRutaGrupos) {
-        const nuevaRuta = mRutaGrupos[1].trim();
-        if (!fs.existsSync(nuevaRuta)) return `❌ Ruta no encontrada: ${nuevaRuta}`;
-        conf.rutaGrupos = nuevaRuta;
-        guardarBackup(conf);
-        return `✅ Ruta de grupos actualizada: ${nuevaRuta}`;
     }
 
     return null;
 }
 
-// --- LISTENER ---
 function registrarListenerMensajes(sock) {
     sock.ev.on("messages.upsert", async ({ messages }) => {
         const msg = messages[0];
@@ -443,7 +426,6 @@ function registrarListenerMensajes(sock) {
     });
 }
 
-// --- MOTOR PRINCIPAL ---
 async function ejecutar() {
     ejecutandoReinicio = false;
 
@@ -462,7 +444,6 @@ async function ejecutar() {
     sock.ev.on("connection.update", async (u) => {
         const { connection, lastDisconnect } = u;
 
-        // EMPAREJAMIENTO - exactamente igual al original que funcionaba
         if (connection === "connecting" && !sock.authState.creds.registered) {
             console.log("\n--- INICIANDO CONEXIÓN SEGURA ---");
             await delay(5000);
