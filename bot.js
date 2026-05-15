@@ -17,37 +17,37 @@ const BACKUP_PATH    = "/storage/emulated/0/MiTiendaWA_backup.json";
 const JID_PATH       = "/storage/emulated/0/MiTiendaWA_jid.txt";
 const BLACKLIST_PATH = "/storage/emulated/0/MiTiendaWA_blacklist.json";
 
-// --- MENSAJES DE ESPERA (30 variantes) ---
+// --- MENSAJES DE ESPERA ---
 const mensajesEspera = [
-    "⏳ Sistema activo. Próxima campaña en camino.",
-    "🔋 Todo en línea. Preparando siguiente ráfaga.",
-    "📊 Monitoreando. Campaña programada y lista.",
-    "🚀 Sistema operando correctamente. En espera.",
-    "✅ Conexión estable. Próximo envío programado.",
+    "⏳ Sistema activo. Esperando instrucciones.",
+    "🔋 Todo en línea. Listo para siguiente ráfaga.",
+    "📊 Monitoreando. Sistema operando correctamente.",
+    "🚀 En espera. Listo cuando me lo indiques.",
+    "✅ Conexión estable. Esperando comando.",
     "🌟 Herramienta activa. Trabajando en segundo plano.",
-    "📡 Señal estable. Campaña lista para ejecutarse.",
-    "⚙️ Proceso en curso. Todo configurado correctamente.",
-    "🎯 En espera del horario programado. Listo.",
-    "💡 Sistema encendido. Próxima ráfaga en camino.",
+    "📡 Señal estable. Listo para ejecutar.",
+    "⚙️ Sistema en curso. Todo configurado correctamente.",
+    "🎯 En espera de instrucciones. Listo.",
+    "💡 Sistema encendido. Esperando tu orden.",
     "🔄 Verificando configuración. Todo en orden.",
-    "📱 Conexión activa. Campaña lista para disparar.",
+    "📱 Conexión activa. Listo para disparar.",
     "🌐 En línea y monitoreando. Sin novedades.",
-    "⭐ Sistema estable. Esperando ventana de envío.",
-    "🔔 Alerta programada activa. Todo funcionando.",
-    "📦 Productos listos. Esperando horario de campaña.",
+    "⭐ Sistema estable. Esperando comando de envío.",
+    "🔔 Alerta activa. Todo funcionando correctamente.",
+    "📦 Productos listos. Esperando instrucción.",
     "🛒 Configuración cargada. Sistema en espera.",
-    "💎 Operando sin interrupciones. Campaña próxima.",
+    "💎 Operando sin interrupciones. Listo.",
     "🏷️ Lista de grupos actualizada. En espera.",
     "📝 Configuración verificada. Todo listo.",
-    "🌤️ Sistema funcionando. Próxima ráfaga programada.",
-    "☀️ Operación normal. Campaña en cuenta regresiva.",
+    "🌤️ Sistema funcionando. Esperando tu señal.",
+    "☀️ Operación normal. Listo para siguiente campaña.",
     "🔍 Revisando parámetros. Sistema operativo.",
-    "💹 Todo en orden. Esperando ventana de tiempo.",
+    "💹 Todo en orden. Esperando comando.",
     "🎈 Sistema activo y estable. Sin interrupciones.",
-    "🌈 Conexión verificada. Campaña lista.",
-    "⚡ Energía total. Sistema listo para siguiente envío.",
-    "🧠 Procesando. Próxima campaña en preparación.",
-    "🎓 Sistema optimizado. Esperando horario programado.",
+    "🌈 Conexión verificada. Listo para ejecutar.",
+    "⚡ Energía total. Esperando instrucción de envío.",
+    "🧠 Procesando. Sistema listo para siguiente campaña.",
+    "🎓 Sistema optimizado. Esperando tu comando.",
     "🏹 En posición. Listo para siguiente ráfaga."
 ];
 
@@ -104,61 +104,6 @@ async function extraerGrupos(sock) {
         fs.writeFileSync("/storage/emulated/0/grupos_extraidos.txt", listaGrupos.join('\n'), 'utf8');
         console.log(`📊 Grupos detectados: ${listaGrupos.length}.`);
     } catch (e) { console.log("⚠️ Error al extraer grupos."); }
-}
-
-// --- HORA ---
-function obtenerHoraActualNum() {
-    const ahora = new Date();
-    return parseInt(ahora.getHours().toString().padStart(2,'0') + ahora.getMinutes().toString().padStart(2,'0'));
-}
-function obtenerMinutosActuales() {
-    const ahora = new Date();
-    return ahora.getHours() * 60 + ahora.getMinutes();
-}
-
-// --- ESPERA CON MENSAJES DE ACTIVIDAD ---
-let mensajeEsperaIdx = Math.floor(Math.random() * mensajesEspera.length);
-async function esperarInicio(hInicio, sock) {
-    const inicioTarget = parseInt(hInicio);
-    console.log(`\n⏳ Modo Vigilancia: Esperando a las ${hInicio}.`);
-    
-    while (obtenerHoraActualNum() < inicioTarget) {
-        // Mensaje de actividad cada 10-15 minutos (variado)
-        const intervalo = (10 + Math.floor(Math.random() * 6)) * 60000;
-        await delay(intervalo);
-        
-        if (obtenerHoraActualNum() >= inicioTarget) break;
-
-        const msj = mensajesEspera[mensajeEsperaIdx % mensajesEspera.length];
-        mensajeEsperaIdx++;
-        try {
-            if (jidAutorizado && sock) {
-                await sock.sendMessage(jidAutorizado, { text: msj });
-            }
-        } catch(e) {}
-    }
-    console.log(`\n✅ Hora alcanzada. Iniciando envíos...`);
-}
-
-async function esperarHastaMañana(hInicioPrimeraRafaga, sock) {
-    console.log(`\n🌙 Jornada diaria finalizada.`);
-    console.log(`💤 Reposando hasta mañana a las ${hInicioPrimeraRafaga}...`);
-
-    while (obtenerHoraActualNum() !== parseInt(hInicioPrimeraRafaga)) {
-        const intervalo = (10 + Math.floor(Math.random() * 6)) * 60000;
-        await delay(intervalo);
-
-        if (obtenerHoraActualNum() === parseInt(hInicioPrimeraRafaga)) break;
-
-        const msj = mensajesEspera[mensajeEsperaIdx % mensajesEspera.length];
-        mensajeEsperaIdx++;
-        try {
-            if (jidAutorizado && sock) {
-                await sock.sendMessage(jidAutorizado, { text: msj });
-            }
-        } catch(e) {}
-    }
-    console.log("\n☀️ ¡Nuevo día! Reiniciando ráfagas...");
 }
 
 // --- SALUDO ---
@@ -232,34 +177,21 @@ async function iniciarCuestionario() {
     }
 
     const rutaGrupos = (await question("\nRuta del archivo grupos.txt: ")).trim();
-    const numRafagas = parseInt(await question("\n¿Cuántas ráfagas diarias? "));
+
+    // Ráfagas: ahora solo duración, sin horario fijo
+    const numRafagas = parseInt(await question("\n¿Cuántas ráfagas vas a configurar? "));
     let ráfagas = [];
     for (let i = 0; i < numRafagas; i++) {
         console.log(`\n--- Ráfaga ${i+1} ---`);
-        const hIni = await question(`   Hora inicio (HHMM): `);
-        const hFin = await question(`   Hora fin (HHMM):   `);
+        const duracion = parseInt(await question(`   Duración en minutos: `));
         let productoIdx = 0;
         if (productos.length > 1) {
             console.log(`   Productos: ${productos.map((p,i) => `${i+1}. ${p.titulo}`).join(' | ')}`);
             productoIdx = parseInt(await question(`   ¿Qué producto usa esta ráfaga? (número): `)) - 1;
         }
-        ráfagas.push({ hIni, hFin, productoIdx });
+        ráfagas.push({ duracion, productoIdx });
     }
     return { tipoCampaña, modoEnvio, productos, rutaGrupos, ráfagas };
-}
-
-// --- RÁFAGA INICIAL ---
-function obtenerRafagaInicial(ráfagas) {
-    const minutosActuales = obtenerMinutosActuales();
-    for (let i = 0; i < ráfagas.length; i++) {
-        const hIniMins = parseInt(ráfagas[i].hIni.slice(0,2)) * 60 + parseInt(ráfagas[i].hIni.slice(2));
-        if (minutosActuales < hIniMins) {
-            if (i > 0) console.log(`\n⏩ Ráfagas anteriores ya pasadas. Arrancando desde ráfaga ${i+1}.`);
-            return i;
-        }
-    }
-    console.log(`\n🌙 Todas las ráfagas del día ya pasaron. Esperando mañana...`);
-    return -1;
 }
 
 // --- ROTACIÓN AUTOMÁTICA ---
@@ -271,30 +203,188 @@ function obtenerProductoDelDia(productos, rafagaIdx) {
 }
 
 // --- GLOBALS ---
-let productoActivoPorRafaga = [];
 let sockGlobal = null;
 let confGlobal = null;
 let campañaActiva = false;
+let rafagaEnCurso = false;
+let cancelarRafagaActual = false;
 let reiniciando = false;
 let ejecutandoReinicio = false;
+let mensajeEsperaIdx = Math.floor(Math.random() * mensajesEspera.length);
+let keepAliveInterval = null;
+
+// --- KEEP ALIVE ---
+function iniciarKeepAlive(sock) {
+    if (keepAliveInterval) clearInterval(keepAliveInterval);
+    keepAliveInterval = setInterval(async () => {
+        if (rafagaEnCurso) return; // no mandar durante envíos
+        if (!jidAutorizado) return;
+        const msj = mensajesEspera[mensajeEsperaIdx % mensajesEspera.length];
+        mensajeEsperaIdx++;
+        try { await sock.sendMessage(jidAutorizado, { text: msj }); }
+        catch(e) {}
+    }, (10 + Math.floor(Math.random() * 6)) * 60000);
+}
+
+// --- EJECUTAR RÁFAGA ---
+async function ejecutarRafaga(r, conf, sock) {
+    if (rafagaEnCurso) return "⚠️ Ya hay una ráfaga en curso. Espera a que termine.";
+    if (r < 0 || r >= conf.ráfagas.length) return `❌ Ráfaga ${r+1} no existe.`;
+
+    rafagaEnCurso = true;
+    cancelarRafagaActual = false;
+    imagenesUsadasEnSesion = [];
+
+    const ventana = conf.ráfagas[r];
+    let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
+    grupos = grupos.filter(l => !blacklist.some(id => l.includes(id)));
+    grupos = grupos.sort(() => Math.random() - 0.5);
+
+    const pIdx = obtenerProductoDelDia(conf.productos, r);
+    const producto = conf.productos[pIdx];
+
+    // Corrección matemática: descontar overhead de Baileys (5s por grupo)
+    const overheadPorGrupo = 5000;
+    const totalOverhead = grupos.length * overheadPorGrupo;
+    const durMs = (ventana.duracion * 60000) - totalOverhead;
+    const pausaBase = Math.max(25000, Math.floor(durMs / Math.max(grupos.length - 1, 1)));
+    const margen = Math.min(10000, pausaBase - 25000);
+
+    console.log(`\n📋 Ráfaga ${r+1}: ${grupos.length} grupos | Producto: ${producto.titulo || 'Catálogo'} | Duración: ${ventana.duracion} min | Pausa: ${Math.floor((pausaBase-margen)/1000)}-${Math.floor(pausaBase/1000)}s`);
+
+    try { await sock.sendMessage(jidAutorizado, { text: `🚀 Ráfaga ${r+1} iniciada. ${grupos.length} grupos | ${ventana.duracion} min` }); } catch(e) {}
+
+    let enviados = 0, fallidos = 0;
+
+    for (let i = 0; i < grupos.length; i++) {
+        if (cancelarRafagaActual) {
+            console.log(`\n⛔ Ráfaga ${r+1} cancelada por comando.`);
+            break;
+        }
+
+        let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
+        if (!idG.includes('@g.us')) idG += '@g.us';
+
+        let tituloEnvio = producto.titulo;
+        let precioEnvio = producto.precio;
+        let descEnvio   = producto.desc;
+        let urlEnvio    = producto.url;
+        let imgPath     = null;
+
+        if (conf.tipoCampaña === "2") {
+            imgPath = obtenerImagenAleatoria(producto.carpetas);
+            if (imgPath && conf.modoEnvio === "B") {
+                const nombreArchivo = imgPath.split('/').pop();
+                const partes = nombreArchivo.split('_');
+                if (partes.length > 1) {
+                    tituloEnvio = partes[0].replace(/-/g, ' ');
+                    precioEnvio = partes[1].split('.')[0];
+                }
+            }
+        }
+
+        const msj = `> ${obtenerSaludo(nombreG)}\n\n` +
+                    `${getRandEmoji('titulo')} *_${tituloEnvio.toUpperCase()}_*\n\n` +
+                    `${getRandEmoji('desc')} *_Descripción:_* \n\n` +
+                    `_${descEnvio.join('_\n_')}_\n\n` +
+                    `${getRandEmoji('precio')} *_PRECIO:_* *_$${precioEnvio.trim()}_*\n\n` +
+                    `${getRandEmoji('url')} *_Más info:_* \n${urlEnvio.trim()}`;
+
+        for (let intento = 1; intento <= 2; intento++) {
+            try {
+                await sockGlobal.sendPresenceUpdate('composing', idG);
+                await delay(2000);
+                if (conf.tipoCampaña === "2" && imgPath) {
+                    await sockGlobal.sendMessage(idG, { image: fs.readFileSync(imgPath), caption: msj });
+                } else {
+                    await sockGlobal.sendMessage(idG, { text: msj }, { linkPreview: true });
+                }
+                console.log(`✅ [${i+1}/${grupos.length}] -> ${nombreG}`);
+                enviados++;
+                break;
+            } catch (e) {
+                if (intento === 1) { console.log(`⚠️ Reintentando: ${nombreG}...`); await delay(5000); }
+                else { console.log(`❌ Error en: ${nombreG}`); fallidos++; }
+            }
+        }
+
+        if (i < grupos.length - 1 && !cancelarRafagaActual) {
+            const espera = pausaBase - Math.floor(Math.random() * margen);
+            console.log(`⏳ Pausa de ${Math.floor(espera/1000)}s...`);
+            await delay(espera);
+        }
+    }
+
+    const horaFin = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const reporte = `📊 *Reporte Ráfaga ${r+1}*\n\n` +
+                    `🕐 Finalizada: ${horaFin}\n` +
+                    `📦 Producto: ${producto.titulo || 'Catálogo'}\n` +
+                    `✅ Enviados: ${enviados}\n` +
+                    `❌ Fallidos: ${fallidos}\n` +
+                    `📋 Total: ${grupos.length}\n` +
+                    `🚫 En lista negra: ${blacklist.length} grupos`;
+    console.log(`\n${reporte}`);
+    if (jidAutorizado) {
+        try { await sockGlobal.sendMessage(jidAutorizado, { text: reporte }); } catch(e) {}
+    }
+
+    rafagaEnCurso = false;
+    cancelarRafagaActual = false;
+}
 
 // --- COMANDOS POR WHATSAPP ---
-function procesarComandoWA(texto, conf) {
+async function procesarComandoWA(texto, conf, sock) {
     const t = texto.trim();
 
-    if (/^reiniciar$/i.test(t)) { reiniciando = true; return "🔄 Reiniciando conexión..."; }
+    // reiniciar
+    if (/^reiniciar$/i.test(t)) {
+        reiniciando = true;
+        return "🔄 Reiniciando conexión...";
+    }
 
-    const mRafaga = t.match(/^r[aá]faga\s+(\d+)\s+producto\s+(\d+)$/i);
-    if (mRafaga) {
-        const r = parseInt(mRafaga[1]) - 1;
-        const p = parseInt(mRafaga[2]) - 1;
+    // lanzar rafaga X
+    const mLanzar = t.match(/^lanzar\s+r[aá]faga\s+(\d+)$/i);
+    if (mLanzar) {
+        const r = parseInt(mLanzar[1]) - 1;
+        if (r < 0 || r >= conf.ráfagas.length) return `❌ Ráfaga ${r+1} no existe.`;
+        if (rafagaEnCurso) return `⚠️ Ya hay una ráfaga en curso.`;
+        ejecutarRafaga(r, conf, sock); // sin await para no bloquear
+        return null; // el mensaje de inicio lo manda ejecutarRafaga
+    }
+
+    // cancelar rafaga X
+    const mCancelar = t.match(/^cancelar\s+r[aá]faga\s+(\d+)$/i);
+    if (mCancelar) {
+        if (!rafagaEnCurso) return `⚠️ No hay ninguna ráfaga en curso.`;
+        cancelarRafagaActual = true;
+        return `⛔ Cancelando ráfaga en curso...`;
+    }
+
+    // rafaga X producto Y
+    const mRafagaProd = t.match(/^r[aá]faga\s+(\d+)\s+producto\s+(\d+)$/i);
+    if (mRafagaProd) {
+        const r = parseInt(mRafagaProd[1]) - 1;
+        const p = parseInt(mRafagaProd[2]) - 1;
         if (r < 0 || r >= conf.ráfagas.length) return `❌ Ráfaga ${r+1} no existe.`;
         if (p < 0 || p >= conf.productos.length) return `❌ Producto ${p+1} no existe.`;
-        productoActivoPorRafaga[r] = p;
+        conf.ráfagas[r].productoIdx = p;
+        guardarBackup(conf);
         return `✅ Ráfaga ${r+1} usará producto ${p+1}: ${conf.productos[p].titulo}`;
     }
 
-    const mProducto = t.match(/^producto\s+(\d+)\s+(\w+)(?:\s+(.+))?$/i);
+    // rafaga X horario HHMM HHMM — ahora cambia duración
+    const mHorario = t.match(/^r[aá]faga\s+(\d+)\s+duracion\s+(\d+)$/i);
+    if (mHorario) {
+        const r = parseInt(mHorario[1]) - 1;
+        const dur = parseInt(mHorario[2]);
+        if (r < 0 || r >= conf.ráfagas.length) return `❌ Ráfaga ${r+1} no existe.`;
+        conf.ráfagas[r].duracion = dur;
+        guardarBackup(conf);
+        return `✅ Ráfaga ${r+1} duración actualizada: ${dur} minutos`;
+    }
+
+    // producto X campo valor — FIX: regex mejorado para capturar todo el valor
+    const mProducto = t.match(/^producto\s+(\d+)\s+(precio|titulo|descripcion|url|carpeta|activar|desactivar)\s*([\s\S]*)$/i);
     if (mProducto) {
         const p = parseInt(mProducto[1]) - 1;
         const campo = mProducto[2].toLowerCase();
@@ -305,12 +395,12 @@ function procesarComandoWA(texto, conf) {
         if (!valor) return `❌ Falta el valor para ${campo}.`;
         if (campo === 'precio')      { conf.productos[p].precio = valor;    guardarBackup(conf); return `✅ Precio actualizado: $${valor}`; }
         if (campo === 'titulo')      { conf.productos[p].titulo = valor;    guardarBackup(conf); return `✅ Título actualizado: ${valor}`; }
-        if (campo === 'descripcion') { conf.productos[p].desc = [valor];    guardarBackup(conf); return `✅ Descripción actualizada.`; }
+        if (campo === 'descripcion') { conf.productos[p].desc = valor.split('\n').filter(l => l.trim()); guardarBackup(conf); return `✅ Descripción actualizada.`; }
         if (campo === 'url')         { conf.productos[p].url = valor;       guardarBackup(conf); return `✅ URL actualizada: ${valor}`; }
         if (campo === 'carpeta')     { conf.productos[p].carpetas = [valor]; guardarBackup(conf); return `✅ Carpeta actualizada: ${valor}`; }
-        return `❌ Campo desconocido: ${campo}`;
     }
 
+    // bloquear/desbloquear ID@g.us
     const mBloquear = t.match(/^(bloquear|desbloquear)\s+(\S+@g\.us)$/i);
     if (mBloquear) {
         const accion = mBloquear[1].toLowerCase();
@@ -324,6 +414,7 @@ function procesarComandoWA(texto, conf) {
             return `✅ Grupo desbloqueado: ${idGrupo}`;
         }
     }
+
     return null;
 }
 
@@ -346,21 +437,22 @@ function registrarListenerMensajes(sock) {
         if (remitente !== jidAutorizado) return;
         if (!confGlobal) return;
 
-        // Ignorar mensajes de espera que el propio bot envió
+        // Ignorar mensajes de keep-alive
         if (mensajesEspera.includes(texto)) return;
 
-        const respuesta = procesarComandoWA(texto, confGlobal);
+        const respuesta = await procesarComandoWA(texto, confGlobal, sock);
         if (respuesta) {
             console.log(`\n📩 Comando: "${texto}"\n📤 Respuesta: ${respuesta}`);
             try { await sock.sendMessage(remitente, { text: respuesta }); } catch(e) {}
+        }
 
-            if (reiniciando) {
-                reiniciando = false;
-                ejecutandoReinicio = true;
-                await delay(2000);
-                console.log("\n🔄 Ejecutando reinicio de conexión...");
-                try { sock.ws.close(); } catch(e) {}
-            }
+        if (reiniciando) {
+            reiniciando = false;
+            ejecutandoReinicio = true;
+            await delay(2000);
+            console.log("\n🔄 Ejecutando reinicio de conexión...");
+            if (keepAliveInterval) clearInterval(keepAliveInterval);
+            try { sock.ws.close(); } catch(e) {}
         }
     });
 }
@@ -397,6 +489,7 @@ async function ejecutar() {
         }
 
         if (connection === "close") {
+            if (keepAliveInterval) clearInterval(keepAliveInterval);
             if (ejecutandoReinicio) { ejecutar(); return; }
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== 401;
             if (shouldReconnect) ejecutar();
@@ -411,7 +504,10 @@ async function ejecutar() {
             blacklist = cargarBlacklist();
             if (blacklist.length > 0) console.log(`🚫 Lista negra: ${blacklist.length} grupos`);
 
-            if (campañaActiva) { console.log("🔄 Reconexión exitosa. Continuando campaña..."); return; }
+            // Iniciar keep-alive
+            iniciarKeepAlive(sock);
+
+            if (campañaActiva) { console.log("🔄 Reconexión exitosa. Continuando..."); return; }
 
             campañaActiva = true;
             let conf;
@@ -434,110 +530,20 @@ async function ejecutar() {
             }
 
             confGlobal = conf;
-            productoActivoPorRafaga = conf.ráfagas.map(r => r.productoIdx || 0);
 
-            while (true) {
-                let rafagaInicial = obtenerRafagaInicial(conf.ráfagas);
-                if (rafagaInicial === -1) { 
-                    await esperarHastaMañana(conf.ráfagas[0].hIni, sockGlobal); 
-                    rafagaInicial = 0; 
-                }
-
-                for (let r = rafagaInicial; r < conf.ráfagas.length; r++) {
-                    const ventana = conf.ráfagas[r];
-                    await esperarInicio(ventana.hIni, sockGlobal);
-
-                    imagenesUsadasEnSesion = [];
-                    let grupos = fs.readFileSync(conf.rutaGrupos, 'utf8').split('\n').filter(l => l.trim());
-                    grupos = grupos.filter(l => !blacklist.some(id => l.includes(id)));
-                    grupos = grupos.sort(() => Math.random() - 0.5);
-
-                    const pIdx = (productoActivoPorRafaga[r] !== undefined)
-                        ? productoActivoPorRafaga[r]
-                        : obtenerProductoDelDia(conf.productos, r);
-                    const producto = conf.productos[pIdx];
-
-                    const hIniMins = parseInt(ventana.hIni.slice(0,2)) * 60 + parseInt(ventana.hIni.slice(2));
-                    const hFinMins = parseInt(ventana.hFin.slice(0,2)) * 60 + parseInt(ventana.hFin.slice(2));
-                    const durMs    = (hFinMins - hIniMins) * 60000;
-                    const pausaBase = Math.max(25000, Math.floor(durMs / grupos.length));
-                    const margen    = Math.min(10000, pausaBase - 25000);
-
-                    console.log(`\n📋 Ráfaga ${r+1}: ${grupos.length} grupos | Producto: ${producto.titulo || 'Catálogo'} | Ventana: ${hFinMins-hIniMins} min | Pausa: ${Math.floor((pausaBase-margen)/1000)}-${Math.floor(pausaBase/1000)}s`);
-
-                    let enviados = 0, fallidos = 0;
-
-                    for (let i = 0; i < grupos.length; i++) {
-                        let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
-                        if (!idG.includes('@g.us')) idG += '@g.us';
-
-                        let tituloEnvio = producto.titulo;
-                        let precioEnvio = producto.precio;
-                        let descEnvio   = producto.desc;
-                        let urlEnvio    = producto.url;
-                        let imgPath     = null;
-
-                        if (conf.tipoCampaña === "2") {
-                            imgPath = obtenerImagenAleatoria(producto.carpetas);
-                            if (imgPath && conf.modoEnvio === "B") {
-                                const nombreArchivo = imgPath.split('/').pop();
-                                const partes = nombreArchivo.split('_');
-                                if (partes.length > 1) {
-                                    tituloEnvio = partes[0].replace(/-/g, ' ');
-                                    precioEnvio = partes[1].split('.')[0];
-                                }
-                            }
-                        }
-
-                        const msj = `> ${obtenerSaludo(nombreG)}\n\n` +
-                                    `${getRandEmoji('titulo')} *_${tituloEnvio.toUpperCase()}_*\n\n` +
-                                    `${getRandEmoji('desc')} *_Descripción:_* \n\n` +
-                                    `_${descEnvio.join('_\n_')}_\n\n` +
-                                    `${getRandEmoji('precio')} *_PRECIO:_* *_$${precioEnvio.trim()}_*\n\n` +
-                                    `${getRandEmoji('url')} *_Más info:_* \n${urlEnvio.trim()}`;
-
-                        for (let intento = 1; intento <= 2; intento++) {
-                            try {
-                                await sockGlobal.sendPresenceUpdate('composing', idG);
-                                await delay(2000);
-                                if (conf.tipoCampaña === "2" && imgPath) {
-                                    await sockGlobal.sendMessage(idG, { image: fs.readFileSync(imgPath), caption: msj });
-                                } else {
-                                    await sockGlobal.sendMessage(idG, { text: msj }, { linkPreview: true });
-                                }
-                                console.log(`✅ [${i+1}/${grupos.length}] -> ${nombreG}`);
-                                enviados++;
-                                break;
-                            } catch (e) {
-                                if (intento === 1) { console.log(`⚠️ Reintentando: ${nombreG}...`); await delay(5000); }
-                                else { console.log(`❌ Error en: ${nombreG}`); fallidos++; }
-                            }
-                        }
-
-                        if (i < grupos.length - 1) {
-                            const espera = pausaBase - Math.floor(Math.random() * margen);
-                            console.log(`⏳ Pausa de ${Math.floor(espera/1000)}s...`);
-                            await delay(espera);
-                        }
-                    }
-
-                    const horaFin = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-                    const reporte = `📊 *Reporte Ráfaga ${r+1}*\n\n` +
-                                    `🕐 Finalizada: ${horaFin}\n` +
-                                    `📦 Producto: ${producto.titulo || 'Catálogo'}\n` +
-                                    `✅ Enviados: ${enviados}\n` +
-                                    `❌ Fallidos: ${fallidos}\n` +
-                                    `📋 Total: ${grupos.length}\n` +
-                                    `🚫 En lista negra: ${blacklist.length} grupos`;
-                    console.log(`\n${reporte}`);
-                    if (jidAutorizado) {
-                        try { await sockGlobal.sendMessage(jidAutorizado, { text: reporte }); }
-                        catch (e) { console.log("⚠️ No se pudo enviar el reporte."); }
-                    }
-                    console.log(`\n✅ Ráfaga ${r+1} finalizada.`);
-                }
-                await esperarHastaMañana(conf.ráfagas[0].hIni, sockGlobal);
+            // Notificar que está listo
+            if (jidAutorizado) {
+                const ráfagasInfo = conf.ráfagas.map((r, i) => 
+                    `  Ráfaga ${i+1}: ${r.duracion} min | Producto: ${conf.productos[r.productoIdx || 0].titulo || 'Catálogo'}`
+                ).join('\n');
+                try {
+                    await sock.sendMessage(jidAutorizado, { 
+                        text: `✅ *Sistema listo*\n\n${ráfagasInfo}\n\nEnvía "lanzar rafaga 1" para iniciar.`
+                    });
+                } catch(e) {}
             }
+
+            console.log("\n✅ Sistema en espera. Envía comandos desde WhatsApp.");
         }
     });
 }
