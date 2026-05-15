@@ -177,8 +177,6 @@ async function iniciarCuestionario() {
     }
 
     const rutaGrupos = (await question("\nRuta del archivo grupos.txt: ")).trim();
-
-    // Ráfagas: ahora solo duración, sin horario fijo
     const numRafagas = parseInt(await question("\n¿Cuántas ráfagas vas a configurar? "));
     let ráfagas = [];
     for (let i = 0; i < numRafagas; i++) {
@@ -217,20 +215,16 @@ let keepAliveInterval = null;
 function iniciarKeepAlive(sock) {
     if (keepAliveInterval) clearInterval(keepAliveInterval);
     keepAliveInterval = setInterval(async () => {
-        if (rafagaEnCurso) return; // no mandar durante envíos
+        if (rafagaEnCurso) return;
         if (!jidAutorizado) return;
         const msj = mensajesEspera[mensajeEsperaIdx % mensajesEspera.length];
         mensajeEsperaIdx++;
-        try { await sock.sendMessage(jidAutorizado, { text: msj }); }
-        catch(e) {}
+        try { await sock.sendMessage(jidAutorizado, { text: msj }); } catch(e) {}
     }, (10 + Math.floor(Math.random() * 6)) * 60000);
 }
 
 // --- EJECUTAR RÁFAGA ---
-async function ejecutarRafaga(r, conf, sock) {
-    if (rafagaEnCurso) return "⚠️ Ya hay una ráfaga en curso. Espera a que termine.";
-    if (r < 0 || r >= conf.ráfagas.length) return `❌ Ráfaga ${r+1} no existe.`;
-
+async function ejecutarRafaga(r, conf) {
     rafagaEnCurso = true;
     cancelarRafagaActual = false;
     imagenesUsadasEnSesion = [];
@@ -240,25 +234,24 @@ async function ejecutarRafaga(r, conf, sock) {
     grupos = grupos.filter(l => !blacklist.some(id => l.includes(id)));
     grupos = grupos.sort(() => Math.random() - 0.5);
 
-    const pIdx = obtenerProductoDelDia(conf.productos, r);
+    const pIdx = ventana.productoIdx !== undefined ? ventana.productoIdx : obtenerProductoDelDia(conf.productos, r);
     const producto = conf.productos[pIdx];
 
-    // Corrección matemática: descontar overhead de Baileys (5s por grupo)
-    const overheadPorGrupo = 5000;
-    const totalOverhead = grupos.length * overheadPorGrupo;
-    const durMs = (ventana.duracion * 60000) - totalOverhead;
+    // Corrección matemática: descontar overhead por grupo
+    const overheadTotal = grupos.length * 5000;
+    const durMs = (ventana.duracion * 60000) - overheadTotal;
     const pausaBase = Math.max(25000, Math.floor(durMs / Math.max(grupos.length - 1, 1)));
     const margen = Math.min(10000, pausaBase - 25000);
 
     console.log(`\n📋 Ráfaga ${r+1}: ${grupos.length} grupos | Producto: ${producto.titulo || 'Catálogo'} | Duración: ${ventana.duracion} min | Pausa: ${Math.floor((pausaBase-margen)/1000)}-${Math.floor(pausaBase/1000)}s`);
 
-    try { await sock.sendMessage(jidAutorizado, { text: `🚀 Ráfaga ${r+1} iniciada. ${grupos.length} grupos | ${ventana.duracion} min` }); } catch(e) {}
+    try { await sockGlobal.sendMessage(jidAutorizado, { text: `🚀 *Ráfaga ${r+1} iniciada*\n📋 ${grupos.length} grupos\n⏱ ${ventana.duracion} minutos\n📦 ${producto.titulo || 'Catálogo'}` }); } catch(e) {}
 
     let enviados = 0, fallidos = 0;
 
     for (let i = 0; i < grupos.length; i++) {
         if (cancelarRafagaActual) {
-            console.log(`\n⛔ Ráfaga ${r+1} cancelada por comando.`);
+            console.log(`\n⛔ Ráfaga ${r+1} cancelada.`);
             break;
         }
 
@@ -322,37 +315,29 @@ async function ejecutarRafaga(r, conf, sock) {
                     `✅ Enviados: ${enviados}\n` +
                     `❌ Fallidos: ${fallidos}\n` +
                     `📋 Total: ${grupos.length}\n` +
-                    `🚫 En lista negra: ${blacklist.length} grupos`;
+                    `🚫 Lista negra: ${blacklist.length} grupos`;
     console.log(`\n${reporte}`);
-    if (jidAutorizado) {
-        try { await sockGlobal.sendMessage(jidAutorizado, { text: reporte }); } catch(e) {}
-    }
+    try { await sockGlobal.sendMessage(jidAutorizado, { text: reporte }); } catch(e) {}
 
     rafagaEnCurso = false;
     cancelarRafagaActual = false;
 }
 
-// --- COMANDOS POR WHATSAPP ---
-async function procesarComandoWA(texto, conf, sock) {
+// --- COMANDOS ---
+async function procesarComandoWA(texto, conf) {
     const t = texto.trim();
 
-    // reiniciar
-    if (/^reiniciar$/i.test(t)) {
-        reiniciando = true;
-        return "🔄 Reiniciando conexión...";
-    }
+    if (/^reiniciar$/i.test(t)) { reiniciando = true; return "🔄 Reiniciando conexión..."; }
 
-    // lanzar rafaga X
     const mLanzar = t.match(/^lanzar\s+r[aá]faga\s+(\d+)$/i);
     if (mLanzar) {
         const r = parseInt(mLanzar[1]) - 1;
         if (r < 0 || r >= conf.ráfagas.length) return `❌ Ráfaga ${r+1} no existe.`;
         if (rafagaEnCurso) return `⚠️ Ya hay una ráfaga en curso.`;
-        ejecutarRafaga(r, conf, sock); // sin await para no bloquear
-        return null; // el mensaje de inicio lo manda ejecutarRafaga
+        ejecutarRafaga(r, conf);
+        return null;
     }
 
-    // cancelar rafaga X
     const mCancelar = t.match(/^cancelar\s+r[aá]faga\s+(\d+)$/i);
     if (mCancelar) {
         if (!rafagaEnCurso) return `⚠️ No hay ninguna ráfaga en curso.`;
@@ -360,7 +345,6 @@ async function procesarComandoWA(texto, conf, sock) {
         return `⛔ Cancelando ráfaga en curso...`;
     }
 
-    // rafaga X producto Y
     const mRafagaProd = t.match(/^r[aá]faga\s+(\d+)\s+producto\s+(\d+)$/i);
     if (mRafagaProd) {
         const r = parseInt(mRafagaProd[1]) - 1;
@@ -372,18 +356,16 @@ async function procesarComandoWA(texto, conf, sock) {
         return `✅ Ráfaga ${r+1} usará producto ${p+1}: ${conf.productos[p].titulo}`;
     }
 
-    // rafaga X horario HHMM HHMM — ahora cambia duración
-    const mHorario = t.match(/^r[aá]faga\s+(\d+)\s+duracion\s+(\d+)$/i);
-    if (mHorario) {
-        const r = parseInt(mHorario[1]) - 1;
-        const dur = parseInt(mHorario[2]);
+    const mDuracion = t.match(/^r[aá]faga\s+(\d+)\s+duracion\s+(\d+)$/i);
+    if (mDuracion) {
+        const r = parseInt(mDuracion[1]) - 1;
+        const dur = parseInt(mDuracion[2]);
         if (r < 0 || r >= conf.ráfagas.length) return `❌ Ráfaga ${r+1} no existe.`;
         conf.ráfagas[r].duracion = dur;
         guardarBackup(conf);
-        return `✅ Ráfaga ${r+1} duración actualizada: ${dur} minutos`;
+        return `✅ Ráfaga ${r+1} duración: ${dur} minutos`;
     }
 
-    // producto X campo valor — FIX: regex mejorado para capturar todo el valor
     const mProducto = t.match(/^producto\s+(\d+)\s+(precio|titulo|descripcion|url|carpeta|activar|desactivar)\s*([\s\S]*)$/i);
     if (mProducto) {
         const p = parseInt(mProducto[1]) - 1;
@@ -400,7 +382,6 @@ async function procesarComandoWA(texto, conf, sock) {
         if (campo === 'carpeta')     { conf.productos[p].carpetas = [valor]; guardarBackup(conf); return `✅ Carpeta actualizada: ${valor}`; }
     }
 
-    // bloquear/desbloquear ID@g.us
     const mBloquear = t.match(/^(bloquear|desbloquear)\s+(\S+@g\.us)$/i);
     if (mBloquear) {
         const accion = mBloquear[1].toLowerCase();
@@ -414,11 +395,10 @@ async function procesarComandoWA(texto, conf, sock) {
             return `✅ Grupo desbloqueado: ${idGrupo}`;
         }
     }
-
     return null;
 }
 
-// --- LISTENER DE MENSAJES ---
+// --- LISTENER ---
 function registrarListenerMensajes(sock) {
     sock.ev.on("messages.upsert", async ({ messages }) => {
         const msg = messages[0];
@@ -436,11 +416,9 @@ function registrarListenerMensajes(sock) {
         }
         if (remitente !== jidAutorizado) return;
         if (!confGlobal) return;
-
-        // Ignorar mensajes de keep-alive
         if (mensajesEspera.includes(texto)) return;
 
-        const respuesta = await procesarComandoWA(texto, confGlobal, sock);
+        const respuesta = await procesarComandoWA(texto, confGlobal);
         if (respuesta) {
             console.log(`\n📩 Comando: "${texto}"\n📤 Respuesta: ${respuesta}`);
             try { await sock.sendMessage(remitente, { text: respuesta }); } catch(e) {}
@@ -476,6 +454,7 @@ async function ejecutar() {
     sock.ev.on("connection.update", async (u) => {
         const { connection, lastDisconnect } = u;
 
+        // EMPAREJAMIENTO - exactamente igual al original que funcionaba
         if (connection === "connecting" && !sock.authState.creds.registered) {
             console.log("\n--- INICIANDO CONEXIÓN SEGURA ---");
             await delay(5000);
@@ -504,7 +483,6 @@ async function ejecutar() {
             blacklist = cargarBlacklist();
             if (blacklist.length > 0) console.log(`🚫 Lista negra: ${blacklist.length} grupos`);
 
-            // Iniciar keep-alive
             iniciarKeepAlive(sock);
 
             if (campañaActiva) { console.log("🔄 Reconexión exitosa. Continuando..."); return; }
@@ -531,14 +509,13 @@ async function ejecutar() {
 
             confGlobal = conf;
 
-            // Notificar que está listo
             if (jidAutorizado) {
-                const ráfagasInfo = conf.ráfagas.map((r, i) => 
-                    `  Ráfaga ${i+1}: ${r.duracion} min | Producto: ${conf.productos[r.productoIdx || 0].titulo || 'Catálogo'}`
+                const info = conf.ráfagas.map((r, i) => 
+                    `  Ráfaga ${i+1}: ${r.duracion} min | ${conf.productos[r.productoIdx || 0].titulo || 'Catálogo'}`
                 ).join('\n');
                 try {
                     await sock.sendMessage(jidAutorizado, { 
-                        text: `✅ *Sistema listo*\n\n${ráfagasInfo}\n\nEnvía "lanzar rafaga 1" para iniciar.`
+                        text: `✅ *Sistema listo*\n\n${info}\n\nEnvía *lanzar rafaga 1* para iniciar.`
                     });
                 } catch(e) {}
             }
