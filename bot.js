@@ -394,7 +394,15 @@ async function procesarComandoWA(texto, conf) {
             guardarBlacklist();
             return `✅ Grupo desbloqueado: ${idGrupo}`;
         }
+    const mRutaGrupos = t.match(/^grupos\s+ruta\s+(.+)$/i);
+    if (mRutaGrupos) {
+        const nuevaRuta = mRutaGrupos[1].trim();
+        if (!fs.existsSync(nuevaRuta)) return `❌ Ruta no encontrada: ${nuevaRuta}`;
+        conf.rutaGrupos = nuevaRuta;
+        guardarBackup(conf);
+        return `✅ Ruta de grupos actualizada: ${nuevaRuta}`;
     }
+
     return null;
 }
 
