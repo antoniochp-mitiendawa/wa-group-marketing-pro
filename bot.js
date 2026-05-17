@@ -59,6 +59,12 @@ const dicEmoji = {
 };
 const getRandEmoji = (cat) => dicEmoji[cat][Math.floor(Math.random() * dicEmoji[cat].length)];
 
+// Un solo bloque de cursiva para toda la descripción
+function formatearDesc(desc) {
+    if (!Array.isArray(desc) || desc.length === 0) return "_Sin descripción_";
+    return "_" + desc.join("\n") + "_";
+}
+
 function guardarBackup(conf) {
     try { fs.writeFileSync(BACKUP_PATH, JSON.stringify(conf, null, 2), 'utf8'); console.log("💾 Configuración guardada."); }
     catch (e) { console.log("⚠️ No se pudo guardar el backup."); }
@@ -144,9 +150,13 @@ async function iniciarCuestionario() {
         for (let p = 0; p < numProductos; p++) {
             console.log(`\n--- Producto ${p+1} ---`);
             const titulo = await question("   Título: ");
-            console.log("   Descripción (FIN para terminar):");
+            console.log("   Descripción línea por línea (FIN para terminar):");
             let desc = [];
-            while (true) { const l = await question(""); if (l.trim().toUpperCase() === 'FIN') break; desc.push(l.trim()); }
+            while (true) {
+                const l = await question("");
+                if (l.trim().toUpperCase() === 'FIN') break;
+                if (l.trim()) desc.push(l.trim());
+            }
             const precio = await question("   Precio: ");
             const url = await question("   URL: ");
             let carpetas = [];
@@ -157,9 +167,13 @@ async function iniciarCuestionario() {
             productos.push({ titulo, desc, precio, url, carpetas, activo: true });
         }
     } else {
-        console.log("\nDescripción extra (FIN para terminar):");
+        console.log("\nDescripción línea por línea (FIN para terminar):");
         let desc = [];
-        while (true) { const l = await question(""); if (l.trim().toUpperCase() === 'FIN') break; desc.push(l.trim()); }
+        while (true) {
+            const l = await question("");
+            if (l.trim().toUpperCase() === 'FIN') break;
+            if (l.trim()) desc.push(l.trim());
+        }
         const url = await question("\nURL: ");
         const numCarp = parseInt(await question("¿Cuántas carpetas de imágenes? "));
         let carpetas = [];
@@ -211,6 +225,15 @@ function iniciarKeepAlive(sock) {
     }, (10 + Math.floor(Math.random() * 6)) * 60000);
 }
 
+function delayConCancelacion(ms) {
+    return new Promise(resolve => {
+        const check = setInterval(() => {
+            if (cancelarRafagaActual) { clearInterval(check); resolve(); }
+        }, 500);
+        setTimeout(() => { clearInterval(check); resolve(); }, ms);
+    });
+}
+
 async function ejecutarRafaga(r, conf) {
     rafagaEnCurso = true;
     cancelarRafagaActual = false;
@@ -230,13 +253,16 @@ async function ejecutarRafaga(r, conf) {
     const margen = Math.min(10000, pausaBase - 25000);
 
     console.log(`\n📋 Ráfaga ${r+1}: ${grupos.length} grupos | Producto: ${producto.titulo || 'Catálogo'} | Duración: ${ventana.duracion} min | Pausa: ${Math.floor((pausaBase-margen)/1000)}-${Math.floor(pausaBase/1000)}s`);
-
     try { await sockGlobal.sendMessage(jidAutorizado, { text: `🚀 *Ráfaga ${r+1} iniciada*\n📋 ${grupos.length} grupos\n⏱ ${ventana.duracion} minutos\n📦 ${producto.titulo || 'Catálogo'}` }); } catch(e) {}
 
     let enviados = 0, fallidos = 0;
 
     for (let i = 0; i < grupos.length; i++) {
-        if (cancelarRafagaActual) { console.log(`\n⛔ Ráfaga ${r+1} cancelada.`); break; }
+        if (cancelarRafagaActual) {
+            console.log(`\n⛔ Ráfaga ${r+1} cancelada en grupo ${i+1}/${grupos.length}.`);
+            try { await sockGlobal.sendMessage(jidAutorizado, { text: `⛔ Ráfaga ${r+1} cancelada.\n✅ Enviados: ${enviados} | ❌ Fallidos: ${fallidos}` }); } catch(e) {}
+            break;
+        }
 
         let [idG, nombreG] = grupos[i].split('|').map(s => s.trim());
         if (!idG.includes('@g.us')) idG += '@g.us';
@@ -261,15 +287,17 @@ async function ejecutarRafaga(r, conf) {
 
         const msj = `> ${obtenerSaludo(nombreG)}\n\n` +
                     `${getRandEmoji('titulo')} *_${tituloEnvio.toUpperCase()}_*\n\n` +
-                    `${getRandEmoji('desc')} *_Descripción:_* \n\n` +
-                    `_${descEnvio.join('_\n_')}_\n\n` +
+                    `${getRandEmoji('desc')} *_Descripción:_*\n\n` +
+                    `${formatearDesc(descEnvio)}\n\n` +
                     `${getRandEmoji('precio')} *_PRECIO:_* *_$${precioEnvio.trim()}_*\n\n` +
-                    `${getRandEmoji('url')} *_Más info:_* \n${urlEnvio.trim()}`;
+                    `${getRandEmoji('url')} *_Más info:_*\n${urlEnvio.trim()}`;
 
         for (let intento = 1; intento <= 2; intento++) {
+            if (cancelarRafagaActual) break;
             try {
                 await sockGlobal.sendPresenceUpdate('composing', idG);
                 await delay(2000);
+                if (cancelarRafagaActual) break;
                 if (conf.tipoCampaña === "2" && imgPath) {
                     await sockGlobal.sendMessage(idG, { image: fs.readFileSync(imgPath), caption: msj });
                 } else {
@@ -287,20 +315,22 @@ async function ejecutarRafaga(r, conf) {
         if (i < grupos.length - 1 && !cancelarRafagaActual) {
             const espera = pausaBase - Math.floor(Math.random() * margen);
             console.log(`⏳ Pausa de ${Math.floor(espera/1000)}s...`);
-            await delay(espera);
+            await delayConCancelacion(espera);
         }
     }
 
-    const horaFin = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-    const reporte = `📊 *Reporte Ráfaga ${r+1}*\n\n` +
-                    `🕐 Finalizada: ${horaFin}\n` +
-                    `📦 Producto: ${producto.titulo || 'Catálogo'}\n` +
-                    `✅ Enviados: ${enviados}\n` +
-                    `❌ Fallidos: ${fallidos}\n` +
-                    `📋 Total: ${grupos.length}\n` +
-                    `🚫 Lista negra: ${blacklist.length} grupos`;
-    console.log(`\n${reporte}`);
-    try { await sockGlobal.sendMessage(jidAutorizado, { text: reporte }); } catch(e) {}
+    if (!cancelarRafagaActual) {
+        const horaFin = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+        const reporte = `📊 *Reporte Ráfaga ${r+1}*\n\n` +
+                        `🕐 Finalizada: ${horaFin}\n` +
+                        `📦 Producto: ${producto.titulo || 'Catálogo'}\n` +
+                        `✅ Enviados: ${enviados}\n` +
+                        `❌ Fallidos: ${fallidos}\n` +
+                        `📋 Total: ${grupos.length}\n` +
+                        `🚫 Lista negra: ${blacklist.length} grupos`;
+        console.log(`\n${reporte}`);
+        try { await sockGlobal.sendMessage(jidAutorizado, { text: reporte }); } catch(e) {}
+    }
 
     rafagaEnCurso = false;
     cancelarRafagaActual = false;
@@ -324,7 +354,7 @@ async function procesarComandoWA(texto, conf) {
     if (mCancelar) {
         if (!rafagaEnCurso) return `⚠️ No hay ninguna ráfaga en curso.`;
         cancelarRafagaActual = true;
-        return `⛔ Cancelando ráfaga en curso...`;
+        return `⛔ Cancelando... se detendrá en la próxima pausa.`;
     }
 
     const mRafagaProd = t.match(/^r[aá]faga\s+(\d+)\s+producto\s+(\d+)$/i);
@@ -348,7 +378,7 @@ async function procesarComandoWA(texto, conf) {
         return `✅ Ráfaga ${r+1} duración: ${dur} minutos`;
     }
 
-    const mProducto = t.match(/^producto\s+(\d+)\s+(precio|titulo|descripcion|url|carpeta|activar|desactivar)\s*([\s\S]*)$/i);
+    const mProducto = t.match(/^producto\s+(\d+)\s+(precio|titulo|descripcion|url|carpeta|activar|desactivar)([\s\S]*)$/i);
     if (mProducto) {
         const p = parseInt(mProducto[1]) - 1;
         const campo = mProducto[2].toLowerCase();
@@ -359,7 +389,11 @@ async function procesarComandoWA(texto, conf) {
         if (!valor) return `❌ Falta el valor para ${campo}.`;
         if (campo === 'precio')      { conf.productos[p].precio = valor;    guardarBackup(conf); return `✅ Precio actualizado: $${valor}`; }
         if (campo === 'titulo')      { conf.productos[p].titulo = valor;    guardarBackup(conf); return `✅ Título actualizado: ${valor}`; }
-        if (campo === 'descripcion') { conf.productos[p].desc = valor.split('\n').filter(l => l.trim()); guardarBackup(conf); return `✅ Descripción actualizada.`; }
+        if (campo === 'descripcion') {
+            conf.productos[p].desc = valor.split('\n').map(l => l.trim()).filter(l => l);
+            guardarBackup(conf);
+            return `✅ Descripción actualizada.`;
+        }
         if (campo === 'url')         { conf.productos[p].url = valor;       guardarBackup(conf); return `✅ URL actualizada: ${valor}`; }
         if (campo === 'carpeta')     { conf.productos[p].carpetas = [valor]; guardarBackup(conf); return `✅ Carpeta actualizada: ${valor}`; }
     }
